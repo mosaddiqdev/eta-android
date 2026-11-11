@@ -1,0 +1,155 @@
+name: Update game data
+
+# WHAT THIS DOES
+# Every day (and whenever you press "Run workflow" in the Actions tab) it checks npm for a newer
+# clash-of-clans-data that has been out for at least 3 days (COOLDOWN_DAYS in scripts/check-data-version.mjs, so a
+# release that is patched the next day is never proposed). Checking daily costs nothing: with nothing new it
+# stops after one cheap step, and a version that already has a branch is never proposed twice. If there is one it installs it, rebuilds the game data and pictures, and runs
+# lint, type-check, tests and a full build. If all of that passes it opens a pull request that lists
+# what changed (new items, new levels, retimed upgrades, items without a picture). If something fails it
+# opens an issue instead and leaves the site alone. Netlify/Vercel builds a preview of the PR; you merge.
+#
+# TO SKIP A VERSION: close its pull request. The branch game-data/<version> stays, so it isn't proposed
+# again. Delete that branch to have it proposed again.
+#
+# ONE-TIME SETUP: Settings > Actions > General > Workflow permissions > tick "Allow GitHub Actions to
+# create and approve pull requests". Without it the "Open the pull request" step fails.
+#
+# AUTO-MERGE (off on purpose; you merge by hand today)
+# To turn it on later:
+#  1. GitHub: Settings > General > tick "Allow auto-merge".
+#  2. Settings > Branches > add a rule for the default branch that REQUIRES the "check" job of the CI
+#     workflow. Without a required check, auto-merge merges immediately, with nothing to wait for.
+#  3. Create the PR with a token that can start workflows (a fine-grained PAT or a GitHub App token kept
+#     as a secret). PRs opened with the default GITHUB_TOKEN do NOT start other workflows, so CI would
+#     never run and the PR would wait forever.
+#  4. Add this step after "Open the pull request", using that token for GH_TOKEN:
+#       - run: gh pr merge --auto --squash "$PR_URL"
+#     (make the PR step print its URL into an output so $PR_URL is set).
+# Only worth it once a few of these PRs have gone through with no surprises. These steps are written from
+# knowledge of how GitHub behaves; re-check them against GitHub's docs when you do it.
+#
+# WHY IT RUNS ITS OWN CHECKS: because of point 3, the CI workflow does not run on the PR this job opens,
+# so this job runs the same checks itself before opening it.
+#
+# KEEPING IT ALIVE: GitHub turns off scheduled workflows in a repository with no activity for 60 days,
+# and this package can go months without a release. The first step re-enables this workflow on every run
+# to reset that clock, and merging any PR counts as activity too. If the schedule ever stops, press
+# "Run workflow" once.
+
+on:
+  schedule:
+    # Every day at 05:17 UTC. Not on the hour: scheduled runs at :00 are the ones GitHub delays most.
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-game-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write # push the branch
+  pull-requests: write # open the PR
+  issues: write # report a failed update
+  actions: write # re-enable this workflow
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Keep the schedule alive
+        continue-on-error: true
+        run: gh api --method PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/update-game-data.yml/enable"
+
+      # Install scripts are off: this job holds a token that can push, and a dependency script must never see it.
+      - run: npm ci --ignore-scripts
+
+      - name: Look for a newer package
+        id: version
+        run: node scripts/check-data-version.mjs
+
+      - name: Skip a version that already has a branch
+        id: fresh
+        if: steps.version.outputs.newer == 'true'
+        env:
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: |
+          if git ls-remote --exit-code --heads origin "game-data/${LATEST}" >/dev/null; then
+            echo "game-data/${LATEST} already exists (open PR, or closed on purpose). Nothing to do."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the current data, to compare against
+        if: steps.fresh.outputs.proceed == 'true'
+        run: |
+          npm run data
+          cp src/game/data/catalog.json "${RUNNER_TEMP}/catalog-before.json"
+
+      - name: Install the new version
+        if: steps.fresh.outputs.proceed == 'true'
+        env:
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: npm install --save-exact --ignore-scripts "clash-of-clans-data@${LATEST}"
+
+      - name: Check the new data
+        id: checks
+        if: steps.fresh.outputs.proceed == 'true'
+        continue-on-error: true
+        run: |
+          npm run data
+          npm run lint
+          npx tsc --noEmit
+          npm test
+          npm run build
+
+      - name: Open the pull request
+        if: steps.fresh.outputs.proceed == 'true' && steps.checks.outcome == 'success'
+        env:
+          CURRENT: ${{ steps.version.outputs.current }}
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: |
+          node scripts/data-diff.mjs "${RUNNER_TEMP}/catalog-before.json" src/game/data/catalog.json \
+            --from "${CURRENT}" --to "${LATEST}" > "${RUNNER_TEMP}/pr-body.md"
+          echo "" >> "${RUNNER_TEMP}/pr-body.md"
+          echo "Lint, type-check, tests and the build already passed in the update job." >> "${RUNNER_TEMP}/pr-body.md"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "game-data/${LATEST}"
+          git add package.json package-lock.json
+          git commit -m "Update game data to clash-of-clans-data@${LATEST}"
+          git push origin "game-data/${LATEST}"
+          gh pr create \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "game-data/${LATEST}" \
+            --title "Update game data to ${LATEST}" \
+            --body-file "${RUNNER_TEMP}/pr-body.md"
+
+      - name: Report a failed update
+        if: steps.fresh.outputs.proceed == 'true' && steps.checks.outcome == 'failure'
+        env:
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: |
+          title="Game data ${LATEST} failed its checks"
+          existing="$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq '.[0].number')"
+          if [ -n "${existing}" ]; then
+            echo "Issue #${existing} already open."
+          else
+            gh issue create --title "${title}" --body "clash-of-clans-data@${LATEST} was installed and one of lint, type-check, tests or the build failed, so no pull request was opened and the site is unchanged.
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          A common cause is a new data folder in the package: the build says which one and where to list it (scripts/build-game-data.mjs)."
+          fi
+          exit 1

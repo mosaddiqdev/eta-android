@@ -1,0 +1,40 @@
+# Keeps everything except the game data package up to date. clash-of-clans-data has its own workflow
+# (.github/workflows/update-game-data.yml), which also rebuilds the data and shows what changed, so it is ignored here.
+#
+# One pull request a week for all minor and patch updates together, and one each for major updates, which are the
+# ones that can break something and deserve a look on their own. Every pull request runs the CI workflow (lint,
+# type-check, tests, build) before you merge. A version has to be 3 days old before it is proposed.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:30"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    ignore:
+      - dependency-name: clash-of-clans-data
+      # A new Capacitor major raises the Node, Java and Gradle floors and changes the Android template. Move to it
+      # on purpose, with docs/android.md open, not through a pull request.
+      - dependency-name: "@capacitor/*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:30"
+      timezone: Etc/UTC
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        patterns: ["*"]

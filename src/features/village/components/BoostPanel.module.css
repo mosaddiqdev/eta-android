@@ -1,0 +1,86 @@
+.panel {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.panel h3 {
+  margin: 0 0 0.625rem;
+  padding-inline: 0.25rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.running {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--line);
+  list-style: none;
+}
+
+.running li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--raised);
+  font-size: 0.9375rem;
+}
+
+.running img {
+  object-fit: contain;
+}
+
+.running strong {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.none {
+  margin: 0;
+  padding: 0.875rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+}
+
+.snacks {
+  margin-top: 0.5rem;
+}
+
+.snacks > button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.snacks > button svg {
+  margin-left: auto;
+}
+
+.snacks > button span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.snacks .stack {
+  padding-top: 0.5rem;
+}

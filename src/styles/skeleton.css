@@ -1,0 +1,44 @@
+/*
+ * Skeleton mode. A screen drawn by its own components, with `data-skeleton` on its root, becomes its own loading
+ * state: the same boxes, spacing, type sizes and radii, so it cannot drift from the real thing. Text turns into
+ * bars, pictures and icons step aside, and nothing can be pressed.
+ */
+[data-skeleton] {
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-skeleton] * {
+  /* biome-ignore lint/complexity/noImportantStyles: skeleton mode must win over every component's own colours and animations */
+  color: transparent !important;
+  /* biome-ignore lint/complexity/noImportantStyles: skeleton mode must win over every component's own colours and animations */
+  border-color: transparent !important;
+  /* biome-ignore lint/complexity/noImportantStyles: skeleton mode must win over every component's own colours and animations */
+  animation: none !important;
+}
+
+/* A bar where the words are: headings, paragraphs and any span that holds only text. */
+[data-skeleton] :is(h1, h2, h3, legend, p, output, strong, b, em, summary, span:not(:empty):not(:has(*))) {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 6px;
+  background: var(--bone);
+}
+
+/* Buttons keep their size but lose their color; one that holds a picture is only a hit area. */
+[data-skeleton] button:not(:has(img)) {
+  background: var(--bone);
+}
+
+[data-skeleton] img,
+[data-skeleton] svg {
+  visibility: hidden;
+}
+
+/* A placeholder has its own color, so "color: transparent" above does not reach it: the empty time boxes showed "0". */
+[data-skeleton] ::placeholder {
+  /* biome-ignore lint/complexity/noImportantStyles: a placeholder has its own colour that only !important reaches */
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+}

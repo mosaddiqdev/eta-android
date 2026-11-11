@@ -1,0 +1,80 @@
+.card {
+  padding: 1rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.entered {
+  margin: 0.125rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  margin-block: -0.5rem;
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clear {
+  transition:
+    opacity 0.2s var(--ease),
+    color 0.15s var(--ease);
+}
+
+.clear:active:not(:disabled) {
+  color: var(--text);
+}
+
+.clear:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.clear:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+@media (hover: hover) {
+  .clear:hover:not(:disabled) {
+    color: var(--text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clear {
+    transition: none;
+  }
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}

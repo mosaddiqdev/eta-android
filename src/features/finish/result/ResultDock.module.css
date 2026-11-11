@@ -1,0 +1,267 @@
+/* This box is as tall as the open sheet even while the panel is slid down, so only the panel takes taps. */
+.dock {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 10;
+  animation: rise 0.4s var(--ease) both;
+  pointer-events: none;
+}
+
+.panel {
+  padding: 0 max(1rem, calc((100% - 36rem) / 2));
+  border-top: 1px solid var(--line);
+  border-radius: 24px 24px 0 0;
+  background: var(--raised-2);
+  box-shadow: var(--dock-shadow);
+  transform: translateY(var(--y, 0px));
+  transition: transform 0.42s var(--ease-sheet);
+  will-change: transform;
+  pointer-events: auto;
+}
+
+.panel[data-dragging="true"],
+.panel[data-snap="true"] {
+  transition: none;
+}
+
+.stage {
+  position: relative;
+}
+
+/* The two states share the sheet. Whichever is not showing fades out and stops taking taps; the one
+   arriving waits a beat so the two never overlap into mush. */
+.live,
+.empty {
+  transition:
+    opacity 0.22s var(--ease),
+    visibility 0s linear 0.22s;
+}
+
+.live[data-on="true"],
+.empty[data-on="true"] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.32s var(--ease) 0.1s,
+    visibility 0s;
+}
+
+.live[data-on="false"],
+.empty[data-on="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Sits over the top of the (taller) result, which is what the sheet slides down to expose as the prompt bar. */
+.empty {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.panel[data-solo="true"] .empty {
+  position: relative;
+}
+
+/* Dims the page while the sheet is open; a tap on it closes the sheet. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease);
+}
+
+.scrim[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Everything in here can be dragged; touch-action keeps the browser from scrolling the page instead. */
+.grab {
+  padding-top: 1.25rem;
+  padding-bottom: 0.25rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.grip {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  width: 2.5rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-soft) 55%, transparent);
+  transform: translateX(-50%);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0 0 0.5rem;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.when {
+  display: grid;
+}
+
+.day {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.time {
+  font-size: 2.25rem;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.togo {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.chevron {
+  color: var(--text-soft);
+  transition: transform 0.3s var(--ease);
+}
+
+.panel[data-open="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.head:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* The part that slides out of view. Its bottom padding stays on screen as the home-indicator gap. */
+.hidden {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+}
+
+.details {
+  --bleed: 1rem;
+  display: grid;
+  /* minmax(0, ...) stops the scrolling legend from stretching the column past the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  max-height: min(50dvh, 26rem);
+  /* Overflow clips at this box, so it reaches the screen edge by the bleed and pads the content back in. */
+  margin-inline: calc(-1 * var(--bleed));
+  padding: 1rem var(--bleed) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+
+  .panel,
+  .scrim,
+  .live,
+  .empty {
+    transition: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .dock {
+    position: sticky;
+    inset-inline: auto;
+    top: 1.5rem;
+    animation: none;
+  }
+
+  .panel {
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: none;
+    transform: none;
+    transition: none;
+    will-change: auto;
+    overflow: clip;
+  }
+
+  /* Both states are laid over each other; the card's height is set from script and eases between them. */
+  .stage {
+    height: var(--stage-h, auto);
+  }
+
+  .panel[data-ready="true"] .stage {
+    transition: height 0.5s var(--ease-sheet);
+  }
+
+  .live,
+  .panel[data-solo="true"] .empty {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+  }
+
+  .live {
+    padding: 1.5rem;
+  }
+
+  .scrim,
+  .grip,
+  .chevron {
+    display: none;
+  }
+
+  .grab {
+    padding-top: 0;
+    touch-action: auto;
+  }
+
+  .head {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .time {
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+  }
+
+  .togo {
+    font-size: 1.25rem;
+  }
+
+  .hidden {
+    padding-bottom: 0;
+  }
+
+  .details {
+    --bleed: 0px;
+    max-height: none;
+    overflow: visible;
+  }
+}

@@ -1,0 +1,312 @@
+import { ChevronRight, Monitor, Moon, Sun, Trash2, X } from "lucide-react";
+import { type ReactNode, useId, useState } from "react";
+import { formatTime } from "../features/finish/format";
+import { noVillages, readVillages, writeVillages } from "../features/village/villages";
+import { type Clock, type StartOn, type Theme, updateSettings, useSettings } from "../settings/settings";
+import { gameDataSummary } from "./about/gameDataAge";
+import { Collapse } from "./Collapse";
+import { canVibrate, confirm, tick } from "./haptics";
+import styles from "./SettingsSheet.module.css";
+import { useSheetDialog } from "./useSheetDialog";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  /** Opens the credits in the About sheet. */
+  onCredits: () => void;
+}
+
+/**
+ * Settings: a bottom sheet on a phone and a centered card from tablet width, like the paste box. Everything is saved the
+ * moment it changes, so there is no Save button and nothing to lose by closing it. The body only exists while it is open,
+ * so what it shows about saved villages and dates is read fresh each time.
+ *
+ * The groups run in the order you reach for them: how it looks (theme, clock), how it behaves (page it opens on,
+ * My village, touch), then what the app keeps (saved data), and About last. Touch only shows where the device can
+ * buzz.
+ */
+export function SettingsSheet({ open, onClose, onCredits }: Props) {
+  const sheet = useSheetDialog(open);
+
+  return (
+    // A click on the backdrop lands on the dialog element itself, not on anything inside it.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already closes a modal dialog.
+    <dialog
+      {...sheet.props}
+      className={styles.sheet}
+      aria-labelledby="settings-title"
+      onClose={onClose}
+      onClick={(event) => event.target === event.currentTarget && sheet.close()}
+    >
+      {sheet.mounted && <Body onClose={sheet.close} onCredits={onCredits} />}
+    </dialog>
+  );
+}
+
+function Body({ onClose, onCredits }: { onClose: () => void; onCredits: () => void }) {
+  const settings = useSettings();
+  const [now] = useState(() => new Date());
+
+  const themes: Option<Theme>[] = [
+    { value: "auto", label: "Auto", icon: <Monitor size={18} aria-hidden="true" /> },
+    { value: "dark", label: "Dark", icon: <Moon size={18} aria-hidden="true" /> },
+    { value: "light", label: "Light", icon: <Sun size={18} aria-hidden="true" /> },
+  ];
+  const clocks: Option<Clock>[] = [
+    { value: "auto", label: "Auto", hint: "Your device" },
+    { value: "12", label: "12-hour", hint: formatTime(now, "12") },
+    { value: "24", label: "24-hour", hint: formatTime(now, "24") },
+  ];
+  const starts: Option<StartOn>[] = [
+    { value: "auto", label: "Auto" },
+    { value: "village", label: "My village" },
+    { value: "finish", label: "Finish time" },
+  ];
+
+  return (
+    <div className={styles.body}>
+      <header className={styles.head}>
+        <h2 id="settings-title">Settings</h2>
+        <button type="button" className={styles.close} onClick={onClose} aria-label="Close settings">
+          <X size={20} aria-hidden="true" />
+        </button>
+      </header>
+
+      <Group title="Appearance">
+        <Segmented
+          label="Theme"
+          value={settings.theme}
+          options={themes}
+          onChange={(theme) => updateSettings({ theme })}
+        />
+      </Group>
+
+      <Group title="Time">
+        <Segmented
+          label="Clock"
+          value={settings.clock}
+          options={clocks}
+          onChange={(clock) => updateSettings({ clock })}
+        />
+        <p className={styles.note}>
+          Finish times read like <strong>Tomorrow, {formatTime(now, settings.clock)}</strong>.
+        </p>
+      </Group>
+
+      <Group title="Start on">
+        <Segmented
+          label="Page that opens first"
+          value={settings.startOn}
+          options={starts}
+          onChange={(startOn) => updateSettings({ startOn })}
+        />
+        <p className={styles.note}>{START_NOTE[settings.startOn]}</p>
+      </Group>
+
+      <Group title="My village">
+        <Switch
+          label="Hide finished upgrades"
+          hint="Leaves out rows that are probably done, so the list shows only what is still running."
+          checked={settings.hideFinished}
+          onChange={(hideFinished) => updateSettings({ hideFinished })}
+        />
+      </Group>
+
+      {canVibrate() && (
+        <Group title="Touch">
+          <Switch
+            label="Vibrate on tap"
+            hint="A tiny buzz when you change a count, flip a switch or pick a tab or option."
+            checked={settings.haptics}
+            onChange={(haptics) => updateSettings({ haptics })}
+          />
+        </Group>
+      )}
+
+      <Group title="Saved data">
+        <SavedData />
+      </Group>
+
+      <Group title="About">
+        <Credits onOpen={onCredits} />
+      </Group>
+    </div>
+  );
+}
+
+const START_NOTE: Record<StartOn, string> = {
+  auto: "Opens My village once you have saved one, and Finish time before that.",
+  finish: "Always opens Finish time, even with a saved village.",
+  village: "Always opens My village. Until you import one, that is the import screen.",
+};
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className={styles.group}>
+      <h3>{title}</h3>
+      <div className={styles.card}>{children}</div>
+    </section>
+  );
+}
+
+interface Option<T extends string> {
+  value: T;
+  label: string;
+  hint?: string;
+  icon?: ReactNode;
+}
+
+/** Radio buttons drawn as one pill with a lit side. Real radios, so arrow keys and screen readers just work. */
+function Segmented<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: Option<T>[];
+  onChange: (value: T) => void;
+}) {
+  const name = useId();
+  return (
+    <fieldset
+      className={styles.segmented}
+      style={
+        {
+          "--n": options.length,
+          "--i": Math.max(
+            0,
+            options.findIndex((o) => o.value === value),
+          ),
+        } as React.CSSProperties
+      }
+    >
+      <legend className="sr-only">{label}</legend>
+      {options.map((option) => (
+        <label key={option.value}>
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={value === option.value}
+            onChange={() => {
+              onChange(option.value);
+              tick();
+            }}
+          />
+          <span>
+            {option.icon}
+            <b>{option.label}</b>
+            {option.hint && <small>{option.hint}</small>}
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function Switch({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <div className={styles.switchRow}>
+      <span className={styles.switchText}>
+        <span id={id}>{label}</span>
+        <small>{hint}</small>
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={id}
+        className={styles.switch}
+        onClick={() => {
+          onChange(!checked);
+          confirm();
+        }}
+      >
+        <span aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+/** Saved villages live only on this phone. Forgetting them all is one confirmed tap, and the page reloads empty. */
+function SavedData() {
+  const [count] = useState(() => readVillages().villages.length);
+  const [sure, setSure] = useState(false);
+
+  const forget = () => {
+    writeVillages(noVillages);
+    window.location.reload();
+  };
+
+  return (
+    <>
+      <div className={styles.dataRow}>
+        <span className={styles.switchText}>
+          <span>
+            {count === 0 ? "No saved villages" : count === 1 ? "1 saved village" : `${count} saved villages`}
+          </span>
+          <small>Kept on this phone. Nothing is sent anywhere.</small>
+        </span>
+        {count > 0 && !sure && (
+          <button type="button" className={styles.quiet} onClick={() => setSure(true)}>
+            <Trash2 size={16} aria-hidden="true" />
+            Forget
+          </button>
+        )}
+      </div>
+      <Collapse open={sure}>
+        <div className={styles.confirm} role="alert">
+          <p>
+            Forget {count === 1 ? "this village" : `all ${count} villages`}? You can paste an export again any
+            time.
+          </p>
+          <div>
+            <button type="button" className={styles.quiet} onClick={() => setSure(false)}>
+              Keep
+            </button>
+            <button
+              type="button"
+              className={styles.danger}
+              onClick={() => {
+                confirm();
+                forget();
+              }}
+            >
+              Forget
+            </button>
+          </div>
+        </div>
+      </Collapse>
+    </>
+  );
+}
+
+/**
+ * The way into Credits. The details (versions, dates, licences) live in one place, About › Credits, so Settings only
+ * says how fresh the game data is and where to read more, in the same words as the table it opens.
+ */
+function Credits({ onOpen }: { onOpen: () => void }) {
+  const [now] = useState(() => new Date());
+  return (
+    <button type="button" className={styles.navRow} onClick={onOpen}>
+      <span className={styles.switchText}>
+        <span>Credits</span>
+        <small>{gameDataSummary(now)}</small>
+      </span>
+      <ChevronRight size={18} aria-hidden="true" />
+    </button>
+  );
+}

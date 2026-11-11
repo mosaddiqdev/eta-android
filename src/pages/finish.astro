@@ -1,0 +1,17 @@
+---
+import FinishIsland from "../features/finish/FinishIsland";
+import { FinishSkeleton } from "../features/finish/FinishSkeleton";
+import Base from "../layouts/Base.astro";
+---
+
+<!-- pages/index.astro renders the same calculator, so a change to the wording here goes there too. -->
+<Base
+  title="ClashETA: Clash of Clans upgrade finish time calculator"
+  description="Enter the time left on an upgrade and the potions or snacks you used. See the exact finish time and whether the boost covers it."
+  canonical="/finish"
+>
+  <h1 class="sr-only">Finish time</h1>
+  <FinishIsland client:only="react">
+    <div slot="fallback" aria-hidden="true"><FinishSkeleton /></div>
+  </FinishIsland>
+</Base>

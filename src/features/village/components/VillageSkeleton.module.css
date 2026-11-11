@@ -1,0 +1,10 @@
+/* The boosts column is too varied to mirror line by line, so it is two plain cards of a typical height. */
+.side {
+  gap: 0.75rem;
+}
+
+.card {
+  height: 9rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}

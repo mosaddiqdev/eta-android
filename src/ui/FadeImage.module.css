@@ -1,0 +1,75 @@
+.frame {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.frame > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bone {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius, 14px);
+}
+
+/* The picture is not painted until it has arrived, so the placeholder is never seen through half a picture. */
+.frame[data-state="loading"] > img,
+.frame[data-state="failed"] > img {
+  opacity: 0;
+}
+
+/* Animation, not transition: callers put their own filter and transform transitions on the picture. */
+.frame[data-state="fresh"] > img,
+.frame[data-state="quick"] > img {
+  animation: reveal 0.32s var(--ease) backwards;
+}
+
+.frame[data-state="fresh"] > .bone {
+  animation: leave 0.32s var(--ease) forwards;
+}
+
+/* It arrived before the placeholder was due, so there is nothing to fade out. */
+.frame[data-state="quick"] > .bone,
+.frame[data-state="ready"] > .bone {
+  display: none;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-state="fresh"] > img,
+  .frame[data-state="quick"] > img {
+    animation: none;
+  }
+
+  .frame[data-state="fresh"] > .bone {
+    display: none;
+  }
+}
+
+/* Inside a skeleton the picture is hidden for good, so its placeholder is the thing that stays. */
+:global([data-skeleton]) .frame > .bone {
+  /* biome-ignore lint/complexity/noImportantStyles: inside a skeleton the placeholder must stay visible whatever state the picture is in */
+  display: block !important;
+  /* biome-ignore lint/complexity/noImportantStyles: inside a skeleton the placeholder must stay visible whatever state the picture is in */
+  opacity: 1 !important;
+  /* biome-ignore lint/complexity/noImportantStyles: inside a skeleton the placeholder must stay visible whatever state the picture is in */
+  visibility: visible !important;
+}

@@ -1,0 +1,71 @@
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.375rem;
+  position: relative;
+  isolation: isolate;
+  padding: 0.25rem;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+}
+
+/* One block glides under the chosen tab (the same move as the Finish time tabs) instead of the fill swapping. */
+.tabs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc((100% - 1.25rem) / 3);
+  border-radius: 11px;
+  background: var(--raised-2);
+  transform: translateX(calc(var(--i, 0) * (100% + 0.375rem)));
+  transition: transform var(--glide);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color var(--glide-text),
+    transform var(--dur-press) var(--ease);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--text);
+  transition-delay: var(--glide-text-delay), 0s;
+}
+
+.tab:active {
+  transform: scale(0.97);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* From tablet width everything is on screen at once, so there is nothing to switch. */
+@media (min-width: 48rem) {
+  .tabs {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs::before,
+  .tab {
+    transition: none;
+  }
+}

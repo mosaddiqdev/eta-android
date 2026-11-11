@@ -1,0 +1,46 @@
+.shell {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  /* --dock-h is whatever the sheet shows at rest (prompt bar or result summary), measured by the sheet. */
+  padding-bottom: calc(var(--dock-h, 6rem) + 1.5rem);
+  /* The sheet changes height when a result appears or goes, so the room kept for it eases in step with it. */
+  transition:
+    padding-bottom 0.42s var(--ease-sheet),
+    --accent 0.4s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    transition: none;
+  }
+
+  .controls {
+    animation: none;
+  }
+}
+
+.controls {
+  display: grid;
+  gap: 1rem;
+  /* The island only exists once the script has run, so it eases in instead of popping. */
+  animation: enter 0.4s var(--ease);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@media (min-width: 48rem) {
+  .shell {
+    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+    width: 100%;
+    padding-bottom: 3rem;
+  }
+}

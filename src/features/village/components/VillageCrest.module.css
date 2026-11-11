@@ -1,0 +1,28 @@
+.crest {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.crest[data-size="lg"] {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.crest[data-size="md"] {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 15px;
+  background: var(--raised-2);
+}
+
+@media (max-width: 23.75rem) {
+  .crest[data-size="lg"] {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 15px;
+  }
+}

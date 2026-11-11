@@ -1,0 +1,113 @@
+.card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.card header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.card img {
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.card h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.card h4 span {
+  margin-left: 0.5rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.card .keeps {
+  color: var(--good);
+}
+
+.suggest {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease),
+    border-color var(--dur-hover) var(--ease);
+}
+
+.suggest span {
+  display: grid;
+  flex: 1;
+}
+
+.suggest svg {
+  flex: none;
+  color: var(--text-soft);
+}
+
+.suggest strong {
+  font-size: 0.875rem;
+}
+
+.suggest small {
+  color: var(--text-soft);
+  font-size: 0.75rem;
+}
+
+.card h4 .bonus {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.clock {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.suggest:active:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 9%, var(--raised-2));
+}
+
+@media (hover: hover) {
+  .suggest:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--text) 6%, var(--raised-2));
+  }
+}
+
+.suggest svg {
+  transition: transform 0.2s var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .suggest:hover svg {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggest,
+  .suggest svg {
+    transition: none;
+  }
+}

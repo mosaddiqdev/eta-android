@@ -1,0 +1,97 @@
+/*
+ * The helper's face inside a progress ring. The ring is a conic gradient cut to a thin band by a mask, so it needs
+ * no SVG and drains smoothly as --share (1 to 0) falls. The face sits inside it, clipped to a circle. The repeat
+ * mark is cut out of the face's corner with a ring in the pill's own color. While the helper only waits to go again,
+ * the face is dimmed and the ring is an empty track.
+ */
+.pill {
+  /* Sized by the row (--pill), so both pills in it are the same height at every screen size. */
+  --face: calc(var(--pill, 1.5rem) + 0.125rem);
+  --band: 2.5px;
+  --base: var(--raised-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: calc(var(--face) + 0.25rem);
+  padding: 0.125rem 0.75rem 0.125rem 0.125rem;
+  border-radius: 999px;
+  background: var(--base);
+}
+
+.pill[data-live="true"] {
+  --base: color-mix(in srgb, var(--accent) 14%, var(--raised-2));
+}
+
+.face {
+  position: relative;
+  flex: none;
+  width: var(--face);
+  height: var(--face);
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--accent) calc(var(--share, 0) * 1turn),
+    color-mix(in srgb, var(--text) 16%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--band) - 0.5px),
+    #000 calc(100% - var(--band))
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--band) - 0.5px),
+    #000 calc(100% - var(--band))
+  );
+}
+
+.face img {
+  position: absolute;
+  inset: calc(var(--band) + 1.5px);
+  width: calc(100% - 2 * (var(--band) + 1.5px));
+  height: calc(100% - 2 * (var(--band) + 1.5px));
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pill[data-live="false"] .face img {
+  filter: grayscale(0.7);
+  opacity: 0.6;
+}
+
+.again {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--base);
+  color: var(--on-accent);
+}
+
+.text {
+  display: grid;
+  gap: 0.0625rem;
+  line-height: 1.1;
+}
+
+.label {
+  color: var(--text-soft);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}

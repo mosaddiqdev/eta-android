@@ -1,0 +1,7 @@
+.mark {
+  display: inline-flex;
+  flex: none;
+  margin-left: 0.375rem;
+  color: var(--text-soft);
+  vertical-align: -0.125em;
+}

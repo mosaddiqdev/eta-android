@@ -1,0 +1,404 @@
+/*
+ * The settings sheet is the paste box's sibling: a bottom sheet on a phone with the same corners and motion, a centered
+ * card from tablet width. Groups are quiet cards on the sheet; the only color is the lit side of a choice.
+ */
+.sheet {
+  width: min(100%, 32rem);
+  max-width: none;
+  max-height: 88dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--raised);
+  color: var(--text);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: up 0.35s var(--ease-sheet);
+}
+
+.sheet::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+@keyframes up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@media (min-width: 48rem) {
+  .sheet {
+    width: 30rem;
+    margin: auto;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.45);
+    animation: pop 0.2s var(--ease);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+
+.body {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem 1rem calc(env(safe-area-inset-bottom) + 1.5rem);
+}
+
+.head {
+  position: sticky;
+  top: -1rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -1rem -1rem 0;
+  padding: 1rem 1rem 0.5rem 1.25rem;
+  background: var(--raised);
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised-2);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+
+@media (hover: hover) {
+  .close:hover {
+    background: var(--line);
+  }
+}
+
+.group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.group h3 {
+  margin: 0;
+  padding-inline: 0.25rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-card);
+  background: var(--raised-2);
+}
+
+.note {
+  margin: 0;
+  padding-inline: 0.25rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* One pill, N equal sides. The lit side is the choice; a 44px minimum height keeps every side easy to hit. */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  position: relative;
+  isolation: isolate;
+}
+
+/* One lit block glides under the chosen side, the same move as every other tab pill in the app. */
+.segmented::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px - (var(--n) - 1) * 2px) / var(--n));
+  border-radius: 11px;
+  background: var(--text);
+  transform: translateX(calc(var(--i, 0) * (100% + 2px)));
+  transition: transform var(--glide);
+}
+
+.segmented label {
+  display: block;
+  position: relative;
+  min-width: 0;
+}
+
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.125rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.25rem;
+  border-radius: 11px;
+  color: var(--text-soft);
+  transition: color var(--glide-text);
+}
+
+.segmented b {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.segmented small {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Icon and name sit side by side when there is nothing under them. */
+.segmented span:not(:has(small)) {
+  grid-auto-flow: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Neutral, like the menu's current page: the lit side is text-colored with the page color on it. No accent hue. */
+.segmented input:checked + span {
+  color: var(--bg);
+  transition-delay: var(--glide-text-delay);
+}
+
+.segmented input:focus-visible + span {
+  outline: 3px solid var(--text);
+  outline-offset: 1px;
+}
+
+.switchRow,
+.dataRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: 0.25rem;
+}
+
+.switchText {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.switchText small {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 3.25rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+
+/* The tap target is the whole 44px-tall row area around the pill, not just the pill. */
+.switch::before {
+  content: "";
+  position: absolute;
+  inset: -0.375rem -0.25rem;
+}
+
+.switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(2rem - 6px);
+  height: calc(2rem - 6px);
+  border-radius: 50%;
+  background: var(--text-soft);
+  transition:
+    translate 0.25s var(--ease),
+    background-color 0.2s var(--ease);
+}
+
+.switch[aria-checked="true"] {
+  background: var(--text);
+}
+
+.switch[aria-checked="true"] span {
+  translate: 1.25rem 0;
+  background: var(--bg);
+}
+
+.switch:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch span,
+  .segmented::before,
+  .segmented span {
+    transition: none;
+  }
+}
+
+.quiet,
+.danger {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease);
+}
+
+.danger {
+  background: var(--warn);
+  color: var(--on-accent);
+}
+
+.quiet:focus-visible,
+.danger:focus-visible,
+.close:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.confirm {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+}
+
+.confirm p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.confirm div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* A row that opens another sheet: text on the left, a chevron on the right, the whole row is the tap target. */
+.navRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.25rem;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-state) var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+
+.navRow svg {
+  flex: none;
+  color: var(--text-soft);
+}
+
+.navRow:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.navRow:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  .navRow:hover {
+    background: var(--raised);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navRow {
+    transition: none;
+  }
+}
+
+.close:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.danger:active:not(:disabled) {
+  transform: scale(0.98);
+}

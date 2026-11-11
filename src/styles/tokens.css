@@ -1,0 +1,144 @@
+/* Registered as a colour so a change of category can ease the accent instead of snapping it. */
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4abbe8;
+}
+
+:root {
+  color-scheme: dark light;
+
+  /* Matte charcoal, neutral. Three clearly separated steps from one family. */
+  --bg: #121212;
+  --raised: #1a1a1a;
+  --raised-2: #232323;
+  --line: #333333;
+  --text: #ececec;
+  --text-soft: #9b9b9b;
+
+  /* Chrome is neutral; color is reserved for meaning (category + verdict).
+   Each accent takes its potion's hue: Builder's cyan liquid, Research's magenta, and the gold paw on Pet's
+   otherwise silver bottle. Lightness is tuned for 4.5:1 contrast on the cards. */
+  --builder: #4abbe8;
+  --lab: #e660c6;
+  --pet: #e3be68;
+  --on-accent: #121212;
+  --good: #8fd1ae;
+  --accent: var(--builder);
+
+  --font-ui: "Plus Jakarta Sans Variable", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  /* Loading placeholders: one step above the card they sit on, with a faint light sweeping across. */
+  --bone: var(--raised-2);
+  --bone-glint: rgb(255 255 255 / 0.05);
+
+  --art-shadow: rgb(0 0 0 / 0.5);
+  --dock-shadow: 0 -16px 40px rgb(0 0 0 / 0.35);
+  --toast-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+  /* The widest the page content gets. The header, the main column and the desktop menu card all line up to it. */
+  --page-max: 64rem;
+  --radius-card: 20px;
+  --radius-control: 14px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Motion tokens. Entrances and presses ease out; sheets and the sliding tab block use the iOS-like sheet curve;
+     things already on screen that move to a new spot ease in and out. Exits run at about 75% of the entrance. */
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* One glide for every sliding pill (village tabs, finish categories, settings, about, before/after) and one fold for
+     every drawer, so the whole app moves with the same hand. The label colour follows the pill with a short delay. */
+  --glide: 0.42s var(--ease-sheet);
+  --glide-text: var(--dur-state) var(--ease);
+  --glide-text-delay: 0.1s;
+  --fold: 0.34s var(--ease-sheet);
+  --dur-press: 120ms;
+  --dur-hover: 150ms;
+  --dur-state: 200ms;
+  --warn: #e0a867;
+}
+
+/*
+ * Theme: "auto" follows the device; the settings sheet can force one by putting data-theme on the page (see
+ * src/settings/settings.ts, and the inline script in Base.astro that does it before first paint). The light values
+ * are written twice because CSS cannot share them between a media query and an attribute selector. Keep both in step.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ededec;
+    --raised: #fafaf9;
+    --raised-2: #e4e4e2;
+    --line: #cfcfcc;
+    --text: #151515;
+    --text-soft: #646463;
+
+    --builder: #0e7bad;
+    --lab: #a31782;
+    --pet: #916600;
+    --on-accent: #ffffff;
+    --good: #1d724d;
+    --warn: #935611;
+    --bone-glint: rgb(255 255 255 / 0.6);
+    --art-shadow: rgb(0 0 0 / 0.22);
+    --dock-shadow: 0 -10px 30px rgb(0 0 0 / 0.1);
+    --toast-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ededec;
+  --raised: #fafaf9;
+  --raised-2: #e4e4e2;
+  --line: #cfcfcc;
+  --text: #151515;
+  --text-soft: #646463;
+
+  --builder: #0e7bad;
+  --lab: #a31782;
+  --pet: #916600;
+  --on-accent: #ffffff;
+  --good: #1d724d;
+  --warn: #935611;
+  --bone-glint: rgb(255 255 255 / 0.6);
+  --art-shadow: rgb(0 0 0 / 0.22);
+  --dock-shadow: 0 -10px 30px rgb(0 0 0 / 0.1);
+  --toast-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+}
+
+[data-kind="builder"] {
+  --accent: var(--builder);
+}
+
+[data-kind="lab"] {
+  --accent: var(--lab);
+}
+
+[data-kind="pet"] {
+  --accent: var(--pet);
+}
+
+/* The Builder Base can't be told apart by potion, so it stays neutral. */
+[data-kind="bb"] {
+  --accent: var(--text-soft);
+}
+
+/* Tonal gradients: a few percent lighter to a few percent darker, no highlight or glow, so they read as depth. */
+[data-kind] {
+  --gem: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--accent) 86%, white),
+    color-mix(in oklab, var(--accent) 88%, black)
+  );
+  --sheen: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 90%, white),
+    color-mix(in oklab, var(--accent) 90%, black)
+  );
+}

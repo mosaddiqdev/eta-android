@@ -1,0 +1,34 @@
+/* The content is always there, folded to nothing; 0fr to 1fr eases its real height without measuring it. */
+.drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: calc(var(--collapse-gap, 0px) * -1);
+  transition:
+    grid-template-rows var(--fold),
+    margin-top var(--fold);
+}
+
+.drawer[data-open="true"] {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+}
+
+.clip {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.18s var(--ease);
+}
+
+.drawer[data-open="true"] .clip {
+  opacity: 1;
+  transition: opacity 0.28s var(--ease) 0.06s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .clip,
+  .drawer[data-open="true"] .clip {
+    transition: none;
+  }
+}

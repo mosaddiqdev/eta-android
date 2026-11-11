@@ -1,0 +1,43 @@
+---
+import { ImportScreen } from "../features/village/components/ImportEmpty";
+import { VillageSkeleton } from "../features/village/components/VillageSkeleton";
+import VillageIsland from "../features/village/VillageIsland";
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="My village: every builder, lab and pet timer | ClashETA"
+  description="Import your Clash of Clans village and see every builder, lab and pet timer in one place, with helpers and potions worked in, so you know exactly when to come back."
+>
+  <h1 class="sr-only">My village</h1>
+  <!-- Before the page's script runs, a returning player should see their village's shape and a new one the import screen's.
+       localStorage is readable here, so the choice is made at once; the key is the one in features/village/villages.ts. -->
+  <script is:inline>
+    try {
+      if (JSON.parse(localStorage.getItem("clasheta.villages")).villages.length)
+        document.documentElement.dataset.saved = "";
+    } catch {}
+  </script>
+  <VillageIsland client:only="react">
+    <div slot="fallback" class="village-wait" aria-hidden="true">
+      <div class="village-wait-saved"><VillageSkeleton /></div>
+      <div class="village-wait-new">
+        <ImportScreen skeleton busy={false} error={null} onClipboard={() => {}} onText={() => {}} onSample={() => {}} />
+      </div>
+    </div>
+  </VillageIsland>
+</Base>
+
+<style is:global>
+  .village-wait-saved {
+    display: none;
+  }
+
+  html[data-saved] .village-wait-saved {
+    display: block;
+  }
+
+  html[data-saved] .village-wait-new {
+    display: none;
+  }
+</style>

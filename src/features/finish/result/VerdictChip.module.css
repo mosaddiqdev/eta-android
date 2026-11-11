@@ -1,0 +1,34 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.3125rem 0.75rem 0.3125rem 0.625rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+  font-size: 0.875rem;
+  font-weight: 700;
+  /* Flipping between "covers it" and "runs out" is a change of state, so the colour eases over. */
+  transition:
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
+}
+
+.chip[data-tone="none"] {
+  --tone: var(--text-soft);
+}
+
+.chip[data-tone="good"] {
+  --tone: var(--good);
+}
+
+.chip[data-tone="short"] {
+  --tone: var(--warn);
+}

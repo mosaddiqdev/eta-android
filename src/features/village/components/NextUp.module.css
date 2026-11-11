@@ -1,0 +1,234 @@
+.hero {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.idle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--warn) 12%, var(--raised));
+  color: var(--warn);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease),
+    border-color var(--dur-hover) var(--ease);
+}
+
+.idle span {
+  margin-left: auto;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.next {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.copy {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.lane {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+}
+
+.label {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.name {
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin: 0.125rem 0 0;
+}
+
+.when strong {
+  font-family: var(--font-mono);
+  font-size: 1.625rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.when span {
+  color: var(--text-soft);
+  font-size: 0.875rem;
+}
+
+.nothing {
+  margin: 0;
+  padding: 1rem;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  color: var(--text-soft);
+}
+
+/* One scrolling row: tiles keep a readable width on a phone, the next one peeks in as the cue to swipe,
+   and on a wider screen they simply share the row. */
+.tiles {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.tiles::-webkit-scrollbar {
+  display: none;
+}
+
+.tiles > li {
+  flex: 1 0 8.5rem;
+  scroll-snap-align: start;
+}
+
+.tile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.125rem 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease),
+    border-color var(--dur-hover) var(--ease);
+}
+
+.tile[data-idle="true"] {
+  border-color: color-mix(in srgb, var(--warn) 55%, transparent);
+}
+
+.tileLabel {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tileValue {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.planning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.planning button {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease);
+}
+
+/* The pill stays 32px tall so the row does not grow; the press area around it reaches the usual 44px. */
+.planning button::after {
+  content: "";
+  position: absolute;
+  inset: -0.375rem -0.25rem;
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .idle,
+  .planning,
+  .tiles {
+    grid-column: 1 / -1;
+  }
+
+  .next {
+    grid-column: 1 / -1;
+  }
+
+  .when strong {
+    font-size: 2rem;
+  }
+}
+
+.idle:active:not(:disabled) {
+  background: color-mix(in srgb, var(--warn) 20%, var(--raised));
+}
+
+.tile:active:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 9%, var(--raised));
+}
+
+@media (hover: hover) {
+  .tile:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--text) 5%, var(--raised));
+  }
+}
+
+.planning button:active:not(:disabled) {
+  transform: scale(0.96);
+}

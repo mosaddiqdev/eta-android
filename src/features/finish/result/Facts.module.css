@@ -1,0 +1,38 @@
+.facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.fact {
+  padding: 0.75rem;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+}
+
+.fact dt {
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fact dd {
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.fact .saved {
+  color: var(--good);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+}
+
+.day {
+  display: block;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

@@ -1,0 +1,29 @@
+/* "28x now" with the stack of what causes it in front (SourceStack). */
+.pill {
+  --size: var(--pill, 1.5rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  min-height: calc(var(--size) + 0.375rem);
+  padding: 0.1875rem 0.75rem 0.1875rem 0.1875rem;
+  border-radius: 999px;
+  background: var(--raised-2);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* With nothing to show it is the same plain pill as the others in the row. */
+.pill[data-bare] {
+  min-height: 0;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.soft {
+  font-family: var(--font-ui);
+  color: var(--text-soft);
+  font-weight: 500;
+}

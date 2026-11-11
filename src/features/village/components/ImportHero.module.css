@@ -1,0 +1,161 @@
+/* Everything is sized in em so the whole group scales together on a narrow phone. */
+.stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: var(--hero-align, center);
+  max-width: 100%;
+  padding-top: 0.5em;
+  font-size: min(1.125rem, 4.2vw);
+  isolation: isolate;
+  /* The group is sized, not squeezed: nothing wraps, nothing overflows the column. */
+  --step: 110ms;
+  --lift: 0.9em;
+}
+
+.piece {
+  position: relative;
+  flex: none;
+}
+
+.piece img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+/* A soft contact shadow, the only thing that grounds a building. */
+.piece::after {
+  content: "";
+  position: absolute;
+  right: 12%;
+  bottom: var(--foot, 2%);
+  left: 12%;
+  z-index: -1;
+  height: 0.7em;
+  border-radius: 50%;
+  background: var(--art-shadow);
+  filter: blur(0.45em);
+}
+
+/*
+ * Depth is placement. The hut stands in front and the other two further back, so their feet sit higher and
+ * the three overlap a little. The hut's picture is tall and narrow, so it is narrower but still the largest.
+ */
+.builder {
+  --i: 0;
+  --foot: 1%;
+  z-index: 2;
+  width: 7.6em;
+  margin-inline: -0.5em;
+}
+
+/* The hut overlaps the other two, so it casts a short shadow on them; that is what separates the three. */
+.builder img {
+  filter: drop-shadow(0 0.2em 0.3em rgb(0 0 0 / 0.4));
+}
+
+.lab,
+.pet {
+  margin-bottom: 1.5em;
+}
+
+.lab {
+  --i: 1;
+  --foot: 8%;
+  /* Starts tucked in behind the hut and slides out to its own place. */
+  --from-x: 2.4em;
+  --side-lift: 0.4em;
+  width: 7em;
+}
+
+.pet {
+  --i: 1;
+  --foot: 6%;
+  --from-x: -2.4em;
+  --side-lift: 0.4em;
+  width: 6.4em;
+}
+
+/*
+ * One arrival, led by the hero. The Builder's Hut is the largest and sits in front, so it comes first; the
+ * Laboratory and Pet House follow 110ms later together, so the left and right match. They begin tucked in
+ * behind the hut and slide out to their own places, which is also how the layering really is. No tilt and no
+ * bounce: these are buildings standing on the ground, and a lean would read as one toppling. Only opacity,
+ * translate and a very small scale move, and the contact shadow travels with its building. Hidden until all
+ * three pictures are ready. For people who ask for less motion nothing moves and each piece just fades.
+ */
+.piece img,
+.piece::after {
+  opacity: 0;
+}
+
+.stage[data-ready] .piece {
+  animation: place 0.9s var(--ease-out-quart) calc(var(--i) * var(--step)) both;
+}
+
+.stage[data-ready] .piece img,
+.stage[data-ready] .piece::after {
+  animation: arrive 0.9s var(--ease-out-quart) calc(var(--i) * var(--step)) both;
+}
+
+.stage[data-ready] .piece::after {
+  animation-name: arrive-shadow;
+}
+
+@keyframes place {
+  from {
+    translate: var(--from-x, 0) var(--side-lift, var(--lift));
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    scale: var(--grow, 0.95);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes arrive-shadow {
+  from {
+    opacity: 0;
+    scale: 0.7 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    --step: 0ms;
+    --lift: 0;
+    --grow: 1;
+  }
+
+  .lab,
+  .pet {
+    --from-x: 0;
+    --side-lift: 0;
+  }
+
+  .stage[data-ready] .piece,
+  .stage[data-ready] .piece img,
+  .stage[data-ready] .piece::after {
+    animation-duration: 0.2s;
+    animation-timing-function: ease-out;
+  }
+}
+
+/* In a skeleton each building is a soft block of its own size; the picture inside only holds the room. */
+:global([data-skeleton]) .piece {
+  border-radius: 1.25em;
+  background: var(--bone);
+}
+
+:global([data-skeleton]) .piece::after {
+  display: none;
+}

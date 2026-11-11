@@ -1,0 +1,139 @@
+/*
+ * An import problem. The message gets the full width and the way out sits under it, in the text's column, where a
+ * thumb already is. Where the card itself is wide (a village page on a tablet or desktop) the action moves up beside
+ * the message. It asks its own width, not the screen's: on the empty screen the card is narrow even on a desktop.
+ */
+.host {
+  width: 100%;
+  container-type: inline-size;
+}
+
+.problem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: 0.625rem;
+  row-gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--warn) 14%, var(--raised));
+  color: var(--warn);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  text-align: left;
+  animation: problem-in 0.32s var(--ease);
+}
+
+.problem[data-dismissible] {
+  grid-template-columns: auto 1fr auto;
+}
+
+/* The icon lines up with the first line of text, however long the message grows. */
+.problem > svg {
+  margin-top: 0.1875rem;
+}
+
+.text {
+  grid-column: 2;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* Neutral on purpose: the card's color says "something is wrong", the button says "here is what to do". */
+.action {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem 0 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--raised-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    transform 0.1s;
+}
+
+.action:active {
+  transform: scale(0.97);
+}
+
+/* A 44px target that takes up one line of the card: the negative margin hands the extra size back. */
+.dismiss {
+  grid-column: 3;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.6875rem -0.6875rem -0.6875rem 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease);
+}
+
+@media (hover: hover) {
+  .action:hover {
+    background: var(--line);
+  }
+
+  .dismiss:hover {
+    background: color-mix(in srgb, var(--warn) 16%, transparent);
+  }
+}
+
+.action:focus-visible,
+.dismiss:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@container (min-width: 34rem) {
+  .problem {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+
+  .problem[data-dismissible] {
+    grid-template-columns: auto 1fr auto auto;
+  }
+
+  .action {
+    grid-column: 3;
+    grid-row: 1;
+    min-height: 2.5rem;
+  }
+
+  .dismiss {
+    grid-column: 4;
+  }
+}
+
+@keyframes problem-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .problem {
+    animation: none;
+  }
+}
+
+.dismiss:active:not(:disabled) {
+  transform: scale(0.92);
+}

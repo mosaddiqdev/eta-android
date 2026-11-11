@@ -1,0 +1,99 @@
+# Builds the Android app and attaches the APK to the run. Push a tag like v0.1.0 to also publish it as a GitHub release.
+# How it works, the signing secrets and the toolchain versions: docs/android.md
+name: Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write # only used to create a release for a tag
+    steps:
+      - uses: actions/checkout@v7
+
+      # Node 24 from .nvmrc: the game data package needs it, and Capacitor 8 needs 22 or newer.
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run android
+
+      # Capacitor 8 builds with Java 21 (Android Gradle Plugin 8.13, Android SDK 36).
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          build-root-directory: android
+
+      # The runner image already has the Android SDK. This only makes sure the pieces the template asks for are there.
+      - name: Android SDK pieces
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null || true
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      # A release APK is built and signed only when the four signing secrets exist (see docs/android.md).
+      - name: Build and sign release APK
+        id: release
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "No signing secrets, so only the debug APK is built."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          (cd android && ./gradlew --no-daemon assembleRelease)
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          UNSIGNED="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          "$TOOLS/zipalign" -p -f 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
+          mkdir -p dist-apk
+          KS_PASS="$KEYSTORE_PASSWORD" K_PASS="$KEY_PASSWORD" "$TOOLS/apksigner" sign \
+            --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KS_PASS --key-pass env:K_PASS \
+            --out dist-apk/eta-release.apk "$RUNNER_TEMP/aligned.apk"
+          "$TOOLS/apksigner" verify dist-apk/eta-release.apk
+          rm -f "$RUNNER_TEMP/release.jks"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist-apk/eta-debug.apk
+          ls -lh dist-apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: eta-apk
+          path: dist-apk/*.apk
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist-apk/*.apk --generate-notes

@@ -1,0 +1,51 @@
+/*
+ * A stack of round frames, each cut out of the one behind it. The cut-out is a mask, not a ring painted in the
+ * pill's color: it is truly transparent, so it stays right on any background (the pill, a tint, a hover state).
+ * The mask is a circle the size of the next frame plus a gap, centred where that frame will sit.
+ * Items sit on a low tint of the lane's accent and are drawn at their measured fit (src/game/art.ts) so none pokes
+ * out of the circle; the helpers are portraits and fill the frame like any avatar.
+ */
+.stack {
+  --overlap: 0.5rem;
+  --gap: 2px;
+  display: flex;
+}
+
+.chip {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size, 1.75rem);
+  height: var(--size, 1.75rem);
+  overflow: hidden;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg));
+}
+
+.chip + .chip {
+  margin-inline-start: calc(var(--overlap) * -1);
+}
+
+.chip:not(:last-child) {
+  --cut: radial-gradient(
+    circle calc(var(--size, 1.75rem) / 2 + var(--gap)) at
+      calc(100% + var(--size, 1.75rem) / 2 - var(--overlap)) 50%,
+    transparent 98%,
+    #000 100%
+  );
+  -webkit-mask-image: var(--cut);
+  mask-image: var(--cut);
+}
+
+.chip img {
+  display: block;
+  width: calc(var(--fit, 1) * 100%);
+  height: calc(var(--fit, 1) * 100%);
+  object-fit: contain;
+}
+
+.chip[data-portrait] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

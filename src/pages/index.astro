@@ -1,0 +1,35 @@
+---
+import FinishIsland from "../features/finish/FinishIsland";
+import { FinishSkeleton } from "../features/finish/FinishSkeleton";
+import Base from "../layouts/Base.astro";
+---
+
+<!-- The home page only decides where to go. A player with a saved village goes to My village. Everyone else is already
+     on the right page: this one carries the same calculator as Finish time, so a new visitor waits for no second
+     request. The script only changes the address to /finish.html. It runs in the head, before anything paints. The
+     keys are the ones in features/village/villages.ts and settings/settings.ts; the "Start on" setting can force either
+     page, and anything else counts as Auto. The addresses end in .html because the app's local server only answers
+     for real file names (see layouts/menu.ts). -->
+<Base
+  title="ClashETA: Clash of Clans upgrade finish time calculator"
+  description="Enter the time left on an upgrade and the potions or snacks you used. See the exact finish time and whether the boost covers it."
+  canonical="/finish"
+>
+  <script is:inline slot="head">
+    let saved = false;
+    let start;
+    try {
+      saved = JSON.parse(localStorage.getItem("clasheta.villages")).villages.length > 0;
+    } catch {}
+    try {
+      start = JSON.parse(localStorage.getItem("clasheta.settings")).startOn;
+    } catch {}
+    const toVillage = start === "village" || (start !== "finish" && saved);
+    if (toVillage) location.replace("/village.html");
+    else history.replaceState(null, "", "/finish.html");
+  </script>
+  <h1 class="sr-only">Finish time</h1>
+  <FinishIsland client:only="react">
+    <div slot="fallback" aria-hidden="true"><FinishSkeleton /></div>
+  </FinishIsland>
+</Base>

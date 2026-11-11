@@ -1,0 +1,178 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-width: none;
+}
+
+/*
+ * Behaves like an app, not a document: no selecting text, no callout when a link or picture is held down, no
+ * dragging a picture out. Fields stay as they are, because people type and paste in them (Safari also needs the
+ * explicit "text" on a field when its page says "none"). This is polish, not protection: screenshots and the
+ * browser's developer tools still see everything. Screen readers, focus and zoom are not affected.
+ */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Pictures cannot be dragged, held to save or picked up by a click: a tap goes straight to the control around them. */
+img,
+svg {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img {
+  pointer-events: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* A modal menu or sheet owns the screen, so the page behind it stays put. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/*
+ * While the theme changes (see swapTheme in settings.ts) no element runs a colour transition, so the whole page takes
+ * the new theme in the same frame. Only transform is left running, which keeps the sliding tab pills gliding.
+ */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  /* biome-ignore lint/complexity/noImportantStyles: must beat every component's own, more specific, transition */
+  transition-property: transform !important;
+}
+
+/* Sideways-scrolling rows (see ui/scrollFade.ts) fade an edge only while more is hidden behind it. */
+[data-scroll-fade] {
+  --mask: linear-gradient(
+    90deg,
+    transparent,
+    #000 var(--fade-l, 0px),
+    #000 calc(100% - var(--fade-r, 0px)),
+    transparent
+  );
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  /* JetBrains Mono turns some character pairs into one glyph; timers and dates should read as typed. */
+  font-variant-ligatures: none;
+  background: var(--bg);
+  /* A focused field near the bottom is scrolled clear of the fixed result sheet. */
+  scroll-padding-bottom: calc(var(--dock-h, 0px) + 1rem);
+}
+
+/* There is no browser around the page, so a pull from the top has nothing to refresh and only stretches the page. */
+html {
+  overscroll-behavior-y: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  margin: 0;
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  line-height: 1.45;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button,
+label,
+a {
+  touch-action: manipulation;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.page {
+  width: min(100% - 2rem, var(--page-max));
+  margin-inline: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: calc(env(safe-area-inset-top) + 0.75rem) 0.75rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand .logo {
+  display: block;
+  height: 1.5rem;
+  width: auto;
+}
+
+main {
+  flex: 1;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Moving between Finish time and My village crossfades instead of cutting. Where the browser does not support it,
+   the pages simply swap as before. Quick on the way out, a touch slower on the way in. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: 120ms;
+    animation-timing-function: ease-in;
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}

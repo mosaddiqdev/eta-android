@@ -1,0 +1,279 @@
+{
+  "tag": "#SAMPLE",
+  "timestamp": 1793419200,
+  "helpers": [
+    {
+      "data": 93000000,
+      "lvl": 8,
+      "helper_cooldown": 51240
+    },
+    {
+      "data": 93000001,
+      "lvl": 9,
+      "helper_cooldown": 51240
+    },
+    {
+      "data": 93000002,
+      "lvl": 5
+    }
+  ],
+  "buildings": [
+    {
+      "data": 1000001,
+      "lvl": 17,
+      "timer": 601344
+    },
+    {
+      "data": 1000015,
+      "lvl": 7,
+      "cnt": 5
+    },
+    {
+      "data": 1000064,
+      "lvl": 1,
+      "cnt": 1
+    },
+    {
+      "data": 1000007,
+      "lvl": 15,
+      "cnt": 1
+    },
+    {
+      "data": 1000068,
+      "lvl": 11,
+      "cnt": 1
+    },
+    {
+      "data": 1000014,
+      "lvl": 12,
+      "cnt": 1
+    },
+    {
+      "data": 1000011,
+      "lvl": 15,
+      "timer": 29160,
+      "helper_timer": 2900,
+      "helper_recurrent": true
+    },
+    {
+      "data": 1000008,
+      "lvl": 20,
+      "timer": 33696,
+      "gear_up": 1
+    },
+    {
+      "data": 1000009,
+      "lvl": 21,
+      "timer": 396000,
+      "gear_up": 1
+    },
+    {
+      "data": 1000019,
+      "lvl": 15,
+      "timer": 150
+    },
+    {
+      "data": 1000005,
+      "lvl": 17,
+      "timer": 198720,
+      "extra": true
+    },
+    {
+      "data": 1000013,
+      "lvl": 17,
+      "gear_up": 1
+    },
+    {
+      "data": 1000012,
+      "lvl": 15,
+      "cnt": 1
+    }
+  ],
+  "traps": [],
+  "decos": [],
+  "obstacles": [],
+  "units": [
+    {
+      "data": 4000065,
+      "lvl": 4,
+      "timer": 669600,
+      "helper_timer": 1900,
+      "helper_recurrent": true
+    },
+    {
+      "data": 4000095,
+      "lvl": 4
+    },
+    {
+      "data": 4000110,
+      "lvl": 3
+    },
+    {
+      "data": 4000123,
+      "lvl": 5
+    },
+    {
+      "data": 4000053,
+      "lvl": 7
+    },
+    {
+      "data": 4000011,
+      "lvl": 14
+    },
+    {
+      "data": 4000024,
+      "lvl": 11
+    },
+    {
+      "data": 4000017,
+      "lvl": 7
+    }
+  ],
+  "siege_machines": [],
+  "heroes": [
+    {
+      "data": 28000000,
+      "lvl": 98
+    },
+    {
+      "data": 28000001,
+      "lvl": 96,
+      "timer": 359424
+    },
+    {
+      "data": 28000002,
+      "lvl": 72
+    },
+    {
+      "data": 28000004,
+      "lvl": 48
+    },
+    {
+      "data": 28000006,
+      "lvl": 85
+    },
+    {
+      "data": 28000007,
+      "lvl": 14
+    }
+  ],
+  "spells": [
+    {
+      "data": 26000098,
+      "lvl": 3
+    },
+    {
+      "data": 26000070,
+      "lvl": 4
+    },
+    {
+      "data": 26000005,
+      "lvl": 7
+    },
+    {
+      "data": 26000000,
+      "lvl": 13
+    },
+    {
+      "data": 26000002,
+      "lvl": 6
+    }
+  ],
+  "pets": [
+    {
+      "data": 73000001,
+      "lvl": 12,
+      "timer": 112320
+    },
+    {
+      "data": 73000000,
+      "lvl": 14
+    },
+    {
+      "data": 73000002,
+      "lvl": 15
+    },
+    {
+      "data": 73000003,
+      "lvl": 13
+    },
+    {
+      "data": 73000009,
+      "lvl": 10
+    }
+  ],
+  "equipment": [],
+  "house_parts": [],
+  "skins": [],
+  "sceneries": [],
+  "buildings2": [
+    {
+      "data": 1000034,
+      "lvl": 10,
+      "cnt": 1
+    },
+    {
+      "data": 1000039,
+      "lvl": 8,
+      "cnt": 1
+    },
+    {
+      "data": 1000046,
+      "lvl": 9,
+      "cnt": 1
+    },
+    {
+      "data": 1000057,
+      "lvl": 8,
+      "timer": 66528
+    },
+    {
+      "data": 1000052,
+      "lvl": 10,
+      "cnt": 1
+    }
+  ],
+  "traps2": [],
+  "decos2": [],
+  "obstacles2": [],
+  "units2": [
+    {
+      "data": 4000036,
+      "lvl": 6,
+      "timer": 123552
+    },
+    {
+      "data": 4000031,
+      "lvl": 20
+    },
+    {
+      "data": 4000037,
+      "lvl": 14
+    },
+    {
+      "data": 4000042,
+      "lvl": 12
+    }
+  ],
+  "heroes2": [
+    {
+      "data": 28000003,
+      "lvl": 31,
+      "timer": 266112
+    },
+    {
+      "data": 28000005,
+      "lvl": 18
+    }
+  ],
+  "skins2": [],
+  "sceneries2": [],
+  "boosts": {
+    "builder_boost": 4500,
+    "builder_consumable": 2100,
+    "lab_boost": 2700,
+    "lab_consumable": 3300,
+    "clocktower_boost": 780,
+    "clocktower_cooldown": 45000
+  }
+}

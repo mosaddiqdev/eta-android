@@ -1,0 +1,13 @@
+.fallback {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--raised-2);
+  color: var(--text-soft);
+}
+
+/* A first build has no picture of its own yet, so it shows the finished look, washed out. */
+.muted {
+  filter: grayscale(0.7) brightness(0.9);
+}

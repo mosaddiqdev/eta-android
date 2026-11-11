@@ -1,0 +1,72 @@
+.box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  margin-top: 0.5rem;
+}
+
+/* A suggestion that appears eases in; one that was already there just changes its number. */
+.lead,
+.option {
+  animation: arrive 0.26s var(--ease);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead,
+  .option {
+    animation: none;
+  }
+}
+
+.lead {
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.or {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.0625rem 0.75rem 0.0625rem 0.25rem;
+  border-radius: 999px;
+  background: var(--raised);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.pill img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}

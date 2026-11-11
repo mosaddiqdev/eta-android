@@ -1,0 +1,54 @@
+/*
+ * A loading placeholder: a quiet block with a faint light passing over it. It stays invisible for the first
+ * 150ms, so a picture that arrives straight away never shows one. Keep that number in step with BONE_WAIT_MS.
+ */
+.bone {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--bone);
+  animation: bone-in 0.3s var(--ease) var(--bone-wait, 150ms) backwards;
+}
+
+.bone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, var(--bone-glint) 50%, transparent 80%);
+  translate: -100% 0;
+  animation: glint 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.bone[data-still]::after {
+  display: none;
+}
+
+@keyframes bone-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes glint {
+  to {
+    translate: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone::after {
+    display: none;
+  }
+}
+
+/* A whole skeleton fades in as one after the same wait, and its bones inside don't wait again. */
+.group {
+  --bone-wait: 0s;
+  animation: bone-in 0.3s var(--ease) 150ms backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group {
+    animation: none;
+  }
+}

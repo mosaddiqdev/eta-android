@@ -1,0 +1,221 @@
+.shell {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
+}
+
+/* Importing is the payoff of the empty screen, so the village eases in instead of replacing it with a cut.
+   It does not play on an ordinary visit, where the village is simply there. */
+.shell[data-arrived] {
+  animation: arrive 0.5s var(--ease-out-quart) backwards;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell[data-arrived] {
+    animation: arrive-fade 0.2s ease-out backwards;
+  }
+
+  @keyframes arrive-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+.panels {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.headRow .heading {
+  margin: 0;
+}
+
+.share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease),
+    color var(--dur-hover) var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+
+.share:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) {
+  .share:hover {
+    background: var(--raised-2);
+    color: var(--text);
+  }
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  padding-inline: 0.25rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.workers {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* The boosts and the schedule, which sit in one column beside the workers on wide screens. */
+.side {
+  display: contents;
+}
+
+/* One view at a time on a phone. */
+.shell[data-tab] .panels [data-panel] {
+  display: none;
+  align-content: start;
+}
+
+.shell[data-tab="workers"] .panels [data-panel="workers"],
+.shell[data-tab="schedule"] .panels [data-panel="schedule"],
+.shell[data-tab="boosts"] .panels [data-panel="boosts"] {
+  display: grid;
+}
+
+/* The shown view eases in when you switch, like the About sheet. A panel that goes from hidden to shown restarts it. */
+@keyframes turn-next {
+  from {
+    opacity: 0;
+    translate: 1rem 0;
+  }
+}
+
+@keyframes turn-prev {
+  from {
+    opacity: 0;
+    translate: -1rem 0;
+  }
+}
+
+/* The view slides in from the side the tab pill is gliding towards, with the same curve as the pill. */
+@media (max-width: 47.99rem) {
+  .shell[data-switched] .panels [data-panel] {
+    animation: turn-next 0.4s var(--ease-sheet);
+  }
+
+  .shell[data-switched][data-direction="prev"] .panels [data-panel] {
+    animation-name: turn-prev;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell[data-switched] .panels [data-panel] {
+    animation: none;
+  }
+}
+
+.bb {
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.bb > button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bb > button span {
+  margin-left: auto;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.bbBody {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+/* Wide screens show everything at once: workers on the left, boosts and schedule beside them. */
+@media (min-width: 48rem) {
+  .shell {
+    width: 100%;
+    gap: 1.5rem;
+  }
+
+  .panels {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: 1.5rem 1.5rem;
+    align-items: start;
+  }
+
+  .shell[data-tab] .panels [data-panel] {
+    display: grid;
+  }
+
+  /*
+   * Both columns are sticky, with `top` set per column by useStickyColumn: a column taller than the screen scrolls
+   * with the page until its bottom shows, then stays there while the other one keeps scrolling. A shorter one sticks
+   * at the top.
+   */
+  .panels > .workers,
+  .panels > .side {
+    position: sticky;
+    top: var(--stick, 1rem);
+    align-self: start;
+  }
+
+  .panels > .workers {
+    grid-column: 1;
+  }
+
+  .panels > .side {
+    display: grid;
+    grid-column: 2;
+    gap: 1.5rem;
+  }
+
+  /* Boosts first, then the schedule, whatever order they come in the page. */
+  .side > .boosts {
+    order: -1;
+  }
+}
+
+@media (min-width: 64rem) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+    gap: 1.5rem 2.5rem;
+  }
+}

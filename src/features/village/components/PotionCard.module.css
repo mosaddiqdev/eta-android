@@ -1,0 +1,178 @@
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 0.875rem;
+  padding: 0.875rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  transition:
+    border-color 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.card[data-planned="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--raised));
+}
+
+.card img {
+  object-fit: contain;
+}
+
+.body {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.body h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.body h4 span {
+  margin-left: 0.25rem;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.gain {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.gain strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.meterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.pct {
+  flex: none;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  display: block;
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--raised-2);
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sheen);
+  transform: translateX(calc((var(--p, 0) - 1) * 100%));
+  transition: transform 0.5s var(--ease-out-quart);
+}
+
+.reason {
+  margin: 0;
+  color: var(--warn);
+  font-size: 0.8125rem;
+}
+
+.controls {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+}
+
+.stepper button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease);
+}
+
+/* 40px to look at, 44px to press. */
+.stepper button::after,
+.plan::after {
+  content: "";
+  position: absolute;
+  inset: -0.125rem;
+}
+
+.stepper button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.stepper button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.stepper output {
+  min-width: 1.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-align: center;
+}
+
+.plan {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 6.5rem;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-state) var(--ease),
+    color var(--dur-state) var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+
+.plan:active {
+  transform: scale(0.97);
+}
+
+.plan[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepper button,
+  .plan,
+  .meter span {
+    transition: none;
+  }
+}

@@ -1,0 +1,226 @@
+/*
+ * One column on a phone: act first, then the quiet options and the privacy line (they belong next to the paste
+ * button, where the clipboard prompt appears), then how to get the data. Two columns on a desktop.
+ */
+.empty {
+  display: grid;
+  grid-template-areas:
+    "intro"
+    "foot"
+    "guide";
+  gap: 1.5rem;
+  max-width: 30rem;
+  margin: 1rem auto 0;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
+}
+
+.intro {
+  grid-area: intro;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.guide {
+  grid-area: guide;
+}
+
+.foot {
+  grid-area: foot;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.intro h1 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.25rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.lead {
+  max-width: 24rem;
+  margin: 0;
+  color: var(--text-soft);
+  text-wrap: balance;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 3.5rem;
+  margin-top: 0.25rem;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 0.12s var(--ease),
+    background-color 0.15s var(--ease),
+    opacity 0.2s var(--ease);
+}
+
+/* The one button that matters answers the finger at once; the paste prompt that follows can take a moment. */
+.primary:active:not(:disabled) {
+  transform: scale(0.985);
+  background: color-mix(in srgb, var(--text) 82%, var(--bg));
+}
+
+.primary:disabled {
+  opacity: 0.6;
+}
+
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--text) 90%, var(--bg));
+  }
+
+  .sample:hover {
+    color: var(--text);
+  }
+}
+
+/* Shown only where there is a keyboard to press; on a phone it would be a hint for something it can't do. */
+.keys {
+  display: none;
+  margin: -0.375rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .keys {
+    display: block;
+  }
+}
+
+.sample {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+
+/* The lock is part of the sentence, not a separate column, so when the line wraps it stays with the first words. */
+.privacy {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.privacy svg {
+  display: inline;
+  margin-right: 0.375rem;
+  vertical-align: -0.125em;
+}
+
+.primary:focus-visible,
+.sample:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+/*
+ * The text follows the buildings: each block rises a few pixels and fades in, 60ms apart, starting while the
+ * last building is still settling. The same ease-out as the hero, no bounce. With reduced motion they only fade.
+ */
+.intro h1 {
+  --i: 0;
+}
+
+.lead {
+  --i: 1;
+}
+
+.primary {
+  --i: 2;
+}
+
+.keys {
+  --i: 3;
+}
+
+.foot {
+  --i: 4;
+}
+
+.guide {
+  --i: 5;
+}
+
+.intro h1,
+.lead,
+.primary,
+.keys,
+.guide,
+.foot {
+  animation: rise 0.6s var(--ease-out-quart) calc(0.25s + var(--i) * 60ms) backwards;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--rise, 0.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro h1,
+  .lead,
+  .primary,
+  .keys,
+  .guide,
+  .foot {
+    --rise: 0;
+    animation-duration: 0.2s;
+    animation-delay: 0s;
+  }
+
+  .primary {
+    transition: none;
+  }
+}
+
+@media (min-width: 56rem) {
+  .empty {
+    grid-template-columns: minmax(0, 25rem) minmax(0, 28rem);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "intro guide"
+      "foot guide";
+    align-items: start;
+    justify-content: center;
+    column-gap: 5rem;
+    max-width: none;
+    margin-top: 3rem;
+  }
+
+  .intro,
+  .foot {
+    justify-items: start;
+    text-align: left;
+    /* Read by the hero scene, which lines up with the text instead of centering. */
+    --hero-align: flex-start;
+  }
+
+  .intro h1 {
+    font-size: 2.375rem;
+  }
+}

@@ -1,0 +1,56 @@
+/*
+ * Shared motion for the bottom sheets and cards (Settings, About, Upgrade, Paste, Villages). Each keeps its own entrance
+ * in its module; this is the part they all share: the backdrop fading in, and the exit. See ui/useSheetDialog.ts.
+ * Exits run a little faster than entrances and ease in, because the sheet has done its job and should get out of the way.
+ */
+dialog[data-sheet] {
+  --leave-ms: 180ms;
+  --leave-y: 40px;
+  --leave-scale: 1;
+}
+
+dialog[data-sheet]::backdrop {
+  /* Literal values: older browsers do not pass custom properties down to ::backdrop. */
+  animation: sheet-veil-in 0.25s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+}
+
+dialog[data-sheet][data-leaving] {
+  animation: sheet-out var(--leave-ms) ease-in forwards;
+}
+
+dialog[data-sheet][data-leaving]::backdrop {
+  animation: sheet-veil-out 180ms ease-in forwards;
+}
+
+/* From tablet width the sheets are centered cards: they settle back by a few pixels instead of a long slide. */
+@media (min-width: 48rem) {
+  dialog[data-sheet] {
+    --leave-y: 8px;
+    --leave-scale: 0.98;
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(var(--leave-y)) scale(var(--leave-scale));
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-veil-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-veil-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[data-sheet]::backdrop {
+    animation: none;
+  }
+}

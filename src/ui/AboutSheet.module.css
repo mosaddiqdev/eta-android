@@ -1,0 +1,731 @@
+/*
+ * About: a tall sheet on a phone, a two-column reader from tablet width. It shares the settings sheet's corners, backdrop
+ * and motion. Chrome stays neutral; the three lane colours (builder, lab, pet) appear only where a thing belongs to a lane.
+ */
+.sheet {
+  --hover: color-mix(in oklab, var(--text) 8%, transparent);
+  width: min(100%, 40rem);
+  max-width: none;
+  height: 92dvh;
+  max-height: none;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--raised);
+  color: var(--text);
+  /* clip, not hidden: a hidden box can still be scrolled by script, and nothing here should ever move the sheet. */
+  overflow: clip;
+  animation: up 0.35s var(--ease-sheet);
+}
+
+.sheet::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+@keyframes up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes turn-next {
+  from {
+    transform: translateX(1rem);
+    opacity: 0;
+  }
+}
+
+@keyframes turn-prev {
+  from {
+    transform: translateX(-1rem);
+    opacity: 0;
+  }
+}
+
+.frame {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.5rem 1.25rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised-2);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+
+.close:focus-visible,
+.tab:focus-visible,
+.toc button:focus-visible,
+.tools a:focus-visible,
+.panel a:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .close:hover {
+    background: var(--line);
+  }
+}
+
+/* Phone: the three tabs are one pill under the title, like the segmented controls in Settings. */
+.rail {
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+  position: relative;
+  isolation: isolate;
+}
+
+/* One lit block glides under the open tab (phone only; the tablet rail lights the row instead). */
+.tabs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px - 4px) / 3);
+  border-radius: 11px;
+  background: var(--text);
+  transform: translateX(calc(var(--i, 0) * (100% + 2px)));
+  transition: transform var(--glide);
+}
+
+.tabs > li {
+  min-width: 0;
+}
+
+.tab {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.25rem;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-state) var(--ease),
+    color var(--glide-text),
+    transform var(--dur-press) var(--ease);
+}
+
+.tab[aria-current="true"] {
+  color: var(--bg);
+  transition-delay: var(--glide-text-delay), var(--glide-text-delay), 0s;
+}
+
+.toc {
+  display: none;
+}
+
+.scroller {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-top: 0.5rem;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  padding: 0.75rem 1.25rem calc(env(safe-area-inset-bottom) + 2.5rem);
+  animation: turn-next 0.4s var(--ease-sheet);
+}
+
+.panel[data-direction="prev"] {
+  animation-name: turn-prev;
+}
+
+/* Reading text */
+.panel p {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+
+.panel p + p {
+  margin-top: 0.75rem;
+}
+
+.panel a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0.75rem;
+  scroll-margin-top: 0.5rem;
+}
+
+.block h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.intro {
+  color: var(--text-soft);
+  font-size: 1rem;
+}
+
+.note {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Story */
+.hero {
+  display: grid;
+  gap: 1rem;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 10.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--raised-2);
+}
+
+/* Three soft pools of lane colour behind the potions, no edges. */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(40% 70% at 22% 100%, color-mix(in oklab, var(--lab) 32%, transparent), transparent),
+    radial-gradient(40% 70% at 50% 100%, color-mix(in oklab, var(--builder) 32%, transparent), transparent),
+    radial-gradient(40% 70% at 78% 100%, color-mix(in oklab, var(--pet) 32%, transparent), transparent);
+}
+
+.stage img {
+  position: relative;
+  height: 6.25rem;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 8px 10px var(--art-shadow));
+}
+
+.stage img[data-kind="builder"] {
+  height: 8rem;
+  margin-bottom: 1.5rem;
+}
+
+.headline {
+  max-width: 20ch;
+  margin: 0;
+  font-size: clamp(1.75rem, 7vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lede {
+  color: var(--text-soft);
+  font-size: 1.0625rem;
+}
+
+/* A picture on a tile tinted with the lane colour. The tint is a fill, never an edge. */
+.art {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--accent, var(--text-soft)) 16%, var(--raised));
+}
+
+.art img {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px var(--art-shadow));
+}
+
+.art[data-muted] img {
+  filter: grayscale(0.7) brightness(0.9);
+}
+
+.cards {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards li {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border-radius: var(--radius-card);
+  background: var(--raised-2);
+}
+
+.cards strong {
+  font-size: 1rem;
+}
+
+.cards p {
+  margin-top: 0.25rem;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.rules {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rules li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "art title" "art text";
+  align-content: center;
+  column-gap: 0.875rem;
+  padding: 0.875rem;
+  border-radius: var(--radius-card);
+  background: var(--raised-2);
+}
+
+.rules .art {
+  grid-area: art;
+  align-self: center;
+}
+
+.rules strong {
+  grid-area: title;
+  align-self: end;
+  font-size: 0.9375rem;
+}
+
+.rules p {
+  grid-area: text;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.items {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--line);
+}
+
+.items li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  grid-template-areas: "art name speed" "art works speed";
+  align-items: center;
+  column-gap: 0.75rem;
+  padding: 0.625rem 1rem 0.625rem 0.75rem;
+  background: var(--raised-2);
+}
+
+.items img {
+  grid-area: art;
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px var(--art-shadow));
+}
+
+.itemName {
+  grid-area: name;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.itemWorks {
+  grid-area: works;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.itemSpeed {
+  grid-area: speed;
+  font-family: var(--font-mono);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.example {
+  --bleed: 1rem; /* the pill row runs to the card's edge */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 0.75rem;
+  padding: 1rem;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--raised-2);
+}
+
+.result {
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+}
+
+.result strong {
+  color: var(--text);
+}
+
+/* One grouped card, rows split by hairlines, like a settings list. */
+.defs {
+  display: grid;
+  gap: 1px;
+  margin: 0.25rem 0 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--line);
+}
+
+.defs div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "art term" "art desc";
+  align-content: center;
+  column-gap: 0.875rem;
+  padding: 0.875rem;
+  background: var(--raised-2);
+}
+
+.defs .art {
+  grid-area: art;
+  align-self: start;
+}
+
+.defs dt {
+  grid-area: term;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.defs dd {
+  grid-area: desc;
+  margin: 0.125rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.notice {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-card);
+  background: color-mix(in oklab, var(--warn) 14%, var(--raised));
+}
+
+.notice svg {
+  flex: none;
+  margin-top: 0.125rem;
+  color: var(--warn);
+}
+
+.tools {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--line);
+}
+
+.tools li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name license" "use license";
+  align-items: center;
+  column-gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--raised-2);
+}
+
+.tools a {
+  grid-area: name;
+  justify-self: start;
+}
+
+.tools span {
+  grid-area: use;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.tools small {
+  grid-area: license;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.facts {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--line);
+}
+
+.facts div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--raised-2);
+}
+
+.facts dt {
+  color: var(--text-soft);
+  font-size: 0.875rem;
+}
+
+.facts dd {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.facts dd small {
+  color: var(--text-soft);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+/* Tablet and up: a reader with the table of contents on the left */
+@media (min-width: 48rem) {
+  .sheet {
+    width: min(58rem, 100% - 3rem);
+    height: min(44rem, 88dvh);
+    margin: auto;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.45);
+    animation: pop 0.2s var(--ease);
+  }
+
+  .frame {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "head scroller" "rail scroller";
+  }
+
+  .head {
+    grid-area: head;
+    background: var(--raised-2);
+    padding: 1.5rem 1.5rem 0.75rem;
+  }
+
+  .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+  }
+
+  .rail {
+    grid-area: rail;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem 1.5rem;
+    background: var(--raised-2);
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: none;
+    gap: 0.25rem;
+    padding: 0;
+    background: none;
+  }
+
+  .tabs::before {
+    display: none;
+  }
+
+  .tab {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.9375rem;
+  }
+
+  .tab[aria-current="true"] {
+    background: var(--text);
+    transition-delay: 0s;
+  }
+
+  @media (hover: hover) {
+    .tab:not([aria-current="true"]):hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+  }
+
+  .toc {
+    display: grid;
+    gap: 0;
+    margin: 0.25rem 0 0.75rem;
+    padding: 0 0 0 1rem;
+    list-style: none;
+  }
+
+  .toc button {
+    width: 100%;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--text-soft);
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .toc button:hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+  }
+
+  .scroller {
+    grid-area: scroller;
+    scroll-padding-top: 1.5rem;
+  }
+
+  .panel {
+    gap: 2.5rem;
+    max-width: 40rem;
+    padding: 2rem 3.5rem 3rem 2.5rem;
+  }
+
+  .block {
+    scroll-margin-top: 1.5rem;
+  }
+
+  .stage {
+    height: 12rem;
+  }
+
+  .stage img {
+    height: 7.5rem;
+  }
+
+  .stage img[data-kind="builder"] {
+    height: 9.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .panel {
+    animation: none;
+  }
+
+  .tabs::before,
+  .tab {
+    transition: none;
+  }
+}
+
+.close:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.tab:active:not(:disabled) {
+  transform: scale(0.97);
+}

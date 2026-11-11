@@ -1,0 +1,51 @@
+{
+  "name": "clasheta",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "predev": "npm run data -- --if-stale",
+    "build": "astro build",
+    "prebuild": "npm run data -- --if-stale",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "pretest": "npm run data -- --if-stale",
+    "data": "node scripts/build-game-data.mjs",
+    "brand": "node scripts/build-brand-assets.mjs",
+    "og": "node scripts/build-og-image.cjs",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "android": "npm run build && node scripts/android-project.mjs"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.1.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/clipboard": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "astro": "^7.4.1",
+    "lucide-react": "^1.61.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.2",
+    "@capacitor/cli": "^8.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "clash-of-clans-data": "0.19.1",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
