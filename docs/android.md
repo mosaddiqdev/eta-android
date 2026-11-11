@@ -30,7 +30,7 @@ When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android
 | `share.ts`      | The Android share sheet for "Share upgrades".                                                                               |
 | `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark).                              |
 
-Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`SystemBars` with `insetsHandling: native` in `capacitor.config.json` and `EdgeToEdge.enable` in the generated `MainActivity`), and the existing `env(safe-area-inset-*)` padding keeps content clear of the bars.
+Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`EdgeToEdge.enable` in the generated `MainActivity`), and the page's own `env(safe-area-inset-*)` padding keeps content clear of the bars. Capacitor's inset handling is off (`SystemBars.insetsHandling: disable` in `capacitor.config.json`): with it on, Capacitor pads the web view itself, and the page then pads a second time. This needs Android System WebView 140 or newer, which reports `env(safe-area-inset-*)` correctly. Older ones report 0, so content would sit under the bars; on those, set `insetsHandling` to `native` instead.
 
 ## Pages are `.html` files
 

@@ -3,14 +3,8 @@
   "appName": "ClashETA",
   "webDir": "dist",
   "plugins": {
-    "SplashScreen": {
-      "launchAutoHide": true,
-      "launchShowDuration": 300,
-      "launchFadeOutDuration": 200
-    },
     "SystemBars": {
-      "insetsHandling": "native",
-      "initialViewportFitValueHint": "cover"
+      "insetsHandling": "disable"
     }
   }
 }

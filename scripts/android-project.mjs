@@ -77,8 +77,7 @@ async function theme() {
   let styles = await readFile(file, "utf8");
   const addTo = (style, item) => {
     const open = new RegExp(`(<style\\s+name="${style.replace(".", "\\.")}"[^>]*>)`);
-    if (!open.test(styles))
-      fail(`Style ${style} not found in styles.xml. Did the Capacitor template change?`);
+    if (!open.test(styles)) fail(`Style ${style} not found in styles.xml. Did the template change?`);
     if (!styles.includes(item)) styles = styles.replace(open, `$1\n        ${item}`);
   };
   addTo("AppTheme.NoActionBar", '<item name="android:windowBackground">@color/eta_background</item>');
@@ -147,21 +146,18 @@ async function icons() {
   }
 }
 
-/** Android 11 and older show this picture while the app starts; 12 and newer show the icon on the colour set above. */
+/**
+ * Android 11 and older show this picture while the app starts; 12 and newer show the icon on the colour set above.
+ * It is a plain colour on purpose: a logo here gets stretched into any strip the web view leaves uncovered.
+ */
 async function splash() {
   const pictures = (await files(RES)).filter((f) => /[\\/]drawable[^\\/]*[\\/]splash\.png$/.test(f));
   if (!pictures.length) console.warn("android-project: no splash.png found, the template's splash stays.");
   for (const file of pictures) {
     const { width, height } = await sizeOf(file);
     const background = file.includes("night") ? DARK : LIGHT;
-    const logo = await mark(width, height, 0.22);
-    await writeFile(
-      file,
-      await sharp({ create: { width, height, channels: 4, background } })
-        .composite([{ input: logo }])
-        .png()
-        .toBuffer(),
-    );
+    const plain = sharp({ create: { width, height, channels: 3, background } });
+    await writeFile(file, await plain.png().toBuffer());
   }
 }
 
