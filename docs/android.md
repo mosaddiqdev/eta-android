@@ -70,6 +70,10 @@ Then add four repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_P
 
 `appId` in `capacitor.config.json` is `app.foreman`. It is how Android tells apps apart, so change it before you share the first APK, not after: a different id installs as a second app, and saved villages (kept in the WebView's storage) don't move between them.
 
+## A gap above the page
+
+If a strip of another colour shows above the page, it is part of the window the page doesn't cover, painted with the window background. `scripts/android-project.mjs` makes that background a plain colour, and declares `windowLayoutInDisplayCutoutMode: shortEdges` so phones that keep apps out of the camera cutout let the page reach the top. To see exactly where the page starts, run the workflow with the debug box ticked (`gh workflow run android.yml -f debug=true`): the build draws a red line at the page's top edge and prints the safe-area numbers, WebView version and header position at the bottom. Normal builds never include it.
+
 ## Data and updates
 
 Saved villages and settings live in the WebView's localStorage for the app. Installing a newer APK over the old one keeps them. Game data and pictures are inside the APK, so a game-data update (the daily pull request) reaches phones with the next build.

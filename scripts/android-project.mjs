@@ -81,10 +81,17 @@ async function theme() {
     if (!styles.includes(item)) styles = styles.replace(open, `$1\n        ${item}`);
   };
   addTo("AppTheme.NoActionBar", '<item name="android:windowBackground">@color/eta_background</item>');
+  // Tells the phone the page may draw into the camera cutout. Without it some makers (Xiaomi's HyperOS, for one) keep
+  // the app below the cutout and fill the gap with the window background.
+  const cutout = '<item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>';
+  addTo("AppTheme.NoActionBar", cutout);
+  addTo("AppTheme.NoActionBarLaunch", cutout);
   addTo(
     "AppTheme.NoActionBarLaunch",
     '<item name="windowSplashScreenBackground">@color/eta_background</item>',
   );
+  // Whatever the phone draws outside the page is a plain colour. The template's launch picture would be stretched into it.
+  styles = styles.replace("@drawable/splash", "@color/eta_background");
   await writeFile(file, styles);
 }
 

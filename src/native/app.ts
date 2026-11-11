@@ -1,6 +1,7 @@
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { getSettings } from "../settings/settings";
+import { showInsetsDebug } from "./debug";
 import { paintSystemBars } from "./systemBars";
 
 /**
@@ -11,6 +12,7 @@ import { paintSystemBars } from "./systemBars";
 export function startApp() {
   if (!Capacitor.isNativePlatform()) return;
   paintSystemBars(getSettings().theme);
+  if (import.meta.env.PUBLIC_DEBUG_INSETS === "1") showInsetsDebug();
 
   void App.addListener("backButton", ({ canGoBack }) => {
     // The last one in the page is the one opened most recently: a sheet opens over the menu that launched it.
