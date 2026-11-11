@@ -72,7 +72,7 @@ jobs:
         run: gh api --method PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/update-game-data.yml/enable"
 
       # Install scripts are off: this job holds a token that can push, and a dependency script must never see it.
-      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts || npm install --ignore-scripts --no-audit --no-fund
 
       - name: Look for a newer package
         id: version

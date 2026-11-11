@@ -103,10 +103,7 @@ async function theme() {
 // The logo, from the same sources the site's icons are built from (scripts/build-brand-assets.mjs).
 const svg = (name) => readFile(new URL(`../brand/${name}`, import.meta.url));
 const raster = async (name, size, density = 384) =>
-  sharp(await svg(name), { density })
-    .resize(size, size)
-    .png()
-    .toBuffer();
+  sharp(await svg(name), { density }).resize(size, size).png().toBuffer();
 
 async function sizeOf(file) {
   const { width, height } = await sharp(file).metadata();

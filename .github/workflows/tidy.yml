@@ -1,0 +1,38 @@
+# Keeps package-lock.json in step with package.json and applies Biome's formatting, then commits the result, so neither
+# has to be done by hand on a phone. Runs when package.json (or this file) changes, or from the Actions tab. The commit is
+# made with the workflow's own token, so it does not start more workflow runs.
+name: Tidy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths: [package.json, .github/workflows/tidy.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      # Install without scripts: the data and picture steps are not needed to fix the lockfile or run Biome.
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npx biome check --write . || true
+      - name: Commit what changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to tidy."
+          else
+            git commit -m "Tidy: lockfile and formatting"
+            git pull --rebase
+            git push
+          fi
