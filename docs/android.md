@@ -30,7 +30,7 @@ When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android
 | `share.ts`      | The Android share sheet for "Share upgrades".                                                                               |
 | `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark).                              |
 
-Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`EdgeToEdge.enable` in the generated `MainActivity`), and the page's own `env(safe-area-inset-*)` padding keeps content clear of the bars. Capacitor's inset handling is off (`SystemBars.insetsHandling: disable` in `capacitor.config.json`): with it on, Capacitor pads the web view itself, and the page then pads a second time. This needs Android System WebView 140 or newer, which reports `env(safe-area-inset-*)` correctly. Older ones report 0, so content would sit under the bars; on those, set `insetsHandling` to `native` instead.
+Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`EdgeToEdge.enable` in the generated `MainActivity`), and the page's own `env(safe-area-inset-*)` padding keeps content clear of the bars. `SystemBars.insetsHandling` is `native` in `capacitor.config.json`, Capacitor's recommended setting: on Android System WebView 140 or newer the page reports the real insets itself, and on older ones Capacitor pads the web view and the page sees 0, so nothing is padded twice.
 
 ## Pages are `.html` files
 
@@ -72,7 +72,7 @@ Then add four repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_P
 
 ## A gap above the page
 
-If a strip of another colour shows above the page, it is part of the window the page doesn't cover, painted with the window background. `scripts/android-project.mjs` makes that background a plain colour, and declares `windowLayoutInDisplayCutoutMode: shortEdges` so phones that keep apps out of the camera cutout let the page reach the top. To see exactly where the page starts, run the workflow with the debug box ticked (`gh workflow run android.yml -f debug=true`): the build draws a red line at the page's top edge and prints the safe-area numbers, WebView version and header position at the bottom. Normal builds never include it.
+If a bar with the app name shows above the page, it is Android's title bar. It appears when `EdgeToEdge.enable(this)` runs before `super.onCreate(...)` in `MainActivity`: the window is then built under the launch theme, which has a title bar, before `BridgeActivity` switches to `AppTheme.NoActionBar`. The generated `MainActivity` calls it after `super.onCreate`, and `scripts/android-project.mjs` also makes the window background a plain colour and declares `windowLayoutInDisplayCutoutMode: shortEdges`. For any other layout problem, to see exactly where the page starts, run the workflow with the debug box ticked (`gh workflow run android.yml -f debug=true`): the build draws a red line at the page's top edge and prints the safe-area numbers, WebView version and header position at the bottom. Normal builds never include it.
 
 ## Data and updates
 

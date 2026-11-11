@@ -33,7 +33,12 @@ async function files(dir) {
   return found;
 }
 
-/** Edge to edge: the page draws behind the status and navigation bars and keeps clear of them with its own padding. */
+/**
+ * Edge to edge: the page draws behind the status and navigation bars and keeps clear of them with its own padding.
+ * EdgeToEdge.enable has to come AFTER super.onCreate. BridgeActivity swaps the launch theme (which has a title bar)
+ * for AppTheme.NoActionBar inside it; enabling first builds the window under the launch theme, and the phone then
+ * shows a title bar with the app name above the page.
+ */
 async function mainActivity() {
   const [file] = (await files(path.join(ANDROID, "app", "src", "main", "java"))).filter((f) =>
     f.endsWith("MainActivity.java"),
@@ -52,8 +57,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
     }
 }
 `,
