@@ -51,6 +51,8 @@ async function mainActivity() {
     `package ${pkg};
 
 import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebView;
 import androidx.activity.EdgeToEdge;
 import com.getcapacitor.BridgeActivity;
 
@@ -59,6 +61,14 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+        // The page has fixed bars (header, result dock) that Android's stretch effect would warp along with the content,
+        // and the web view's own scrollbar is drawn by Android, out of reach of CSS.
+        WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+        if (webView != null) {
+            webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+            webView.setVerticalScrollBarEnabled(false);
+            webView.setHorizontalScrollBarEnabled(false);
+        }
     }
 }
 `,
@@ -103,10 +113,7 @@ async function theme() {
 // The logo, from the same sources the site's icons are built from (scripts/build-brand-assets.mjs).
 const svg = (name) => readFile(new URL(`../brand/${name}`, import.meta.url));
 const raster = async (name, size, density = 384) =>
-  sharp(await svg(name), { density })
-    .resize(size, size)
-    .png()
-    .toBuffer();
+  sharp(await svg(name), { density }).resize(size, size).png().toBuffer();
 
 async function sizeOf(file) {
   const { width, height } = await sharp(file).metadata();
