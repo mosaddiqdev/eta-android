@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 and newer play this on launch. Older versions get the still mark in drawable/. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/eta_splash_mark">
+    <target android:name="bar_top">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="380"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="translateX"
+                android:valueFrom="-300"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="fill_top">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="260"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="fillAlpha"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="bar_mid">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="440"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="translateX"
+                android:valueFrom="300"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="fill_mid">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="260"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="fillAlpha"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="bar_bot">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="translateX"
+                android:valueFrom="-300"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="fill_bot">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="260"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="fillAlpha"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+</animated-vector>
