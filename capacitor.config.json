@@ -5,6 +5,11 @@
   "plugins": {
     "SystemBars": {
       "insetsHandling": "native"
+    },
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "launchShowDuration": 1500,
+      "launchFadeOutDuration": 150
     }
   }
 }

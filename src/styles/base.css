@@ -98,6 +98,19 @@ body {
   line-height: 1.45;
 }
 
+/* Content that scrolls up under the status bar fades out in the page colour, so the clock and icons stay readable.
+   It is the page colour, never black: a black layer on a dark page shows up as a darker band. The height is the
+   status bar's, so where there is none (a desktop browser) it is nothing. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 8;
+  height: env(safe-area-inset-top);
+  background: linear-gradient(var(--bg) 40%, transparent);
+  pointer-events: none;
+}
+
 button,
 input {
   font: inherit;

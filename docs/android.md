@@ -75,6 +75,14 @@ Then add four repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_P
 
 The generated `MainActivity` turns off the web view's scrollbars (Android draws its own, which CSS can't hide) and its overscroll stretch. The header and the result dock are fixed, and the stretch moves the whole web view, so they would warp with the content. Scrolling inside sheets and the side menu still stops cleanly at the ends. To get the stretch back, delete the `setOverScrollMode` line in `scripts/android-project.mjs`.
 
+## The splash screen
+
+One mark on a calm background, nothing else. The window background is the page's dark or light colour. In the middle, the ClashETA E draws itself in as three bars (top and bottom slide in from the left, the middle from the right, each fading in, about half a second). On Android 12 and newer that is a real animated vector (`brand/android/eta_splash_icon_v31.xml`); older versions show the still mark (`eta_splash_mark.xml`). The mark is drawn from the same path as `brand/mark.svg`, sized for the 288dp canvas whose 192dp centre circle Android shows. `scripts/android-project.mjs` copies the files into the project and points the launch theme at them. To change the timing, edit the `duration` values in the animated file and `windowSplashScreenAnimationDuration` in the script; `SPLASH_MS` in `src/native/app.ts` is how long the splash is held.
+
+## Launch and the status bar
+
+The launch splash is held until the page has painted: `startApp` hides it after two animation frames, and `capacitor.config.json` makes it hide by itself after 1.5 seconds if that never happens. Without that, Android drops the splash as soon as the window exists and the web view is blank for a moment, which shows as a flicker. The window, the splash and the launcher icon background are all the page's dark or light colour, so nothing differs in that gap. A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
+
 ## A gap above the page
 
 If a bar with the app name shows above the page, it is Android's title bar. It appears when `EdgeToEdge.enable(this)` runs before `super.onCreate(...)` in `MainActivity`: the window is then built under the launch theme, which has a title bar, before `BridgeActivity` switches to `AppTheme.NoActionBar`. The generated `MainActivity` calls it after `super.onCreate`, and `scripts/android-project.mjs` also makes the window background a plain colour and declares `windowLayoutInDisplayCutoutMode: shortEdges`. For any other layout problem, to see exactly where the page starts, run the workflow with the debug box ticked (`gh workflow run android.yml -f debug=true`): the build draws a red line at the page's top edge and prints the safe-area numbers, WebView version and header position at the bottom. Normal builds never include it.
