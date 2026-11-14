@@ -77,24 +77,29 @@ The generated `MainActivity` turns off the web view's scrollbars (Android draws 
 
 ## The splash screen
 
-One mark on a calm background, nothing else. The window background is the page's dark or light colour.
+Two layers on one colour, with nothing to hand off between them.
+
+1. **The phone's splash** is only a screen of the page's colour (dark or light), with an empty icon on it. `scripts/android-project.mjs` sets that up (`windowSplashScreenBackground`, a transparent `eta_splash_blank` icon, the window background). It is on screen for the instant before the page exists.
+2. **The ClashETA splash is part of the page.** `src/ui/Splash.astro` draws the E from `brand/mark.svg` as three bar layers, `src/styles/splash.css` animates them, and `src/native/splash.ts` decides when it ends. Because it lives in the same document as the app, the end is a plain fade over a page that is already drawn, not a switch between a native picture and the web view.
+
+Why not Android's own animated splash icon: it can only show one icon on one colour, it isn't shown at all when the app is launched some ways (a third-party launcher, the app info screen), and the switch from it to the web view was the stutter. Android's own guidance for apps that need more is the same pattern used here: a transparent icon on the window colour, then the app's own content.
 
 The sequence, from the tap on the icon:
 
-| Beat | What happens | Who controls it |
+| Beat | What happens | Where it is set |
 | --- | --- | --- |
-| 0 | The phone's own launch animation opens the window. | The launcher. The window is already the page colour, so nothing flashes. |
-| 0 to 520 ms | The ClashETA E arrives: the whole mark settles in from 94% size while its bars come in one after another, 70 ms apart (top and bottom from the left, the middle from the right), each fading in. Material 3's emphasized decelerate curve throughout. | `brand/android/eta_splash_icon_v31.xml` |
-| about 520 to 700 ms | The finished mark rests for a beat. | `SPLASH_MIN_MS` in `src/native/app.ts` |
-| about 700 to 950 ms | The splash fades out over the page, which is already drawn underneath. | `launchFadeOutDuration` in `capacitor.config.json` |
+| 0 | The phone's launch animation opens the window, on the page colour. | The launcher |
+| 0 to 520 ms | The whole mark settles in from 94% while the bars arrive one after another, 70 ms apart (top and bottom from the left, the middle from the right), each fading in. | `splash.css` |
+| 520 to 750 ms | The finished mark rests for a beat. | `MIN_MS` in `splash.ts` |
+| after that | Once the page has loaded and gone idle, a 220 ms fade reveals it. | `splash.ts`, `splash.css` |
 
-On Android 12 and newer the arrival is a real animated vector (`eta_splash_icon_v31.xml`, starting from `eta_splash_mark_start.xml` where every bar is hidden). Older versions show the still mark (`eta_splash_mark.xml`). With "Remove animations" turned on, Android skips straight to the finished mark. The mark is drawn from the same path as `brand/mark.svg`, sized for the 288dp canvas whose 192dp centre circle Android shows. `scripts/android-project.mjs` copies the files into the project and points the launch theme at them.
+It runs on transform and opacity only, which the compositor handles without the main thread, so the page starting up underneath cannot make it stutter. It uses the page's own theme colour, so a forced Light or Dark theme is honoured from the first frame of the page. With "Remove animations" on, the finished mark simply appears and fades. It shows once per app start (a session flag), never in a browser, and a CSS timer ends it after 2.4 seconds even if the script never does. The home page marks itself "leaving" when it redirects to My village, so the page it lands on shows the splash instead.
 
-To change the timing: the `duration` and `startOffset` values in the animated file, `windowSplashScreenAnimationDuration` in the script (keep it at or above the longest animation), `SPLASH_MIN_MS` and `SPLASH_MAX_MS` in `src/native/app.ts`, and `launchFadeOutDuration` in `capacitor.config.json`.
+To change it: bar delays and slide distances are in `Splash.astro`, curves and durations in `splash.css`, the hold and fade in `splash.ts`.
 
-## Launch and the status bar
+## The status bar
 
-The launch splash is held until the page's islands have mounted: `startApp` polls with timers and hides it, and `capacitor.config.json` makes it hide by itself after 1.5 seconds if that never happens. Timers, not animation frames, because `@capacitor/splash-screen` holds back the app's first frame until the splash is hidden, so a frame callback would wait for something that only comes after. Without any hold, Android drops the splash as soon as the window exists and the web view is blank for a moment, which shows as a flicker. The window, the splash and the launcher icon background are all the page's dark or light colour, so nothing differs in that gap. A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
+A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
 
 ## The result sheet and the keyboard
 

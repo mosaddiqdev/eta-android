@@ -1,0 +1,43 @@
+---
+import mark from "../../brand/mark.svg?raw";
+
+// The E from brand/mark.svg, cut into its three coloured bars, each bar its own layer so it can move on its own.
+// The outline and the bands are read from the logo file, so the splash can't drift from the logo.
+const outline = /<path id="e" d="([^"]+)"/.exec(mark)?.[1] ?? "";
+const rect = /<rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"\/>/g;
+const bands = [...mark.matchAll(rect)];
+const fills = [...mark.matchAll(/<use href="#e" fill="(#[0-9a-f]+)"/g)].map((match) => match[1]);
+
+// Top and bottom arrive from the left, the middle from the right, 70 ms apart.
+const arrivals = [
+  { from: "-2.4rem", delay: 0 },
+  { from: "2.4rem", delay: 70 },
+  { from: "-2.4rem", delay: 140 },
+];
+const bars = bands.map(([, x, y, width, height], index) => ({
+  x,
+  y,
+  width,
+  height,
+  fill: fills[index],
+  ...arrivals[index],
+}));
+---
+
+<!-- Shown only inside the app, once per start (styles/splash.css, native/splash.ts). Hidden from everything else. -->
+<div class="splash" aria-hidden="true">
+  <div class="splash-mark">
+    {
+      bars.map((bar, index) => (
+        <svg class="splash-bar" viewBox="0 -957 762 992" style={`--from:${bar.from};--delay:${bar.delay}ms`}>
+          <g transform="translate(-35 0) scale(1 -1)">
+            <clipPath id={`splash-band-${index}`}>
+              <rect x={bar.x} y={bar.y} width={bar.width} height={bar.height} />
+            </clipPath>
+            <path d={outline} fill={bar.fill} clip-path={`url(#splash-band-${index})`} />
+          </g>
+        </svg>
+      ))
+    }
+  </div>
+</div>

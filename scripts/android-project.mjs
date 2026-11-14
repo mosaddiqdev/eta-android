@@ -75,29 +75,35 @@ public class MainActivity extends BridgeActivity {
   );
 }
 
+// A fully transparent icon: the phone's splash shows the window colour and nothing else.
+const BLANK_ICON = `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,0h24v24h-24z" />
+</vector>
+`;
+
 const colorFile = (name, hex) => `<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="${name}">${hex}</color>
 </resources>
 `;
 
-/** The window and the Android 12+ splash take the page's background, in light and in dark, so nothing flashes white. */
+/** The window and the phone's splash take the page's background, in light and in dark, so nothing flashes white. */
 async function theme() {
   await writeFile(path.join(RES, "values", "eta_colors.xml"), colorFile("eta_background", LIGHT));
   const night = path.join(RES, "values-night");
   await mkdir(night, { recursive: true });
   await writeFile(path.join(night, "eta_colors.xml"), colorFile("eta_background", DARK));
 
-  // The splash mark: still below Android 12, animated (the bars weave in) from Android 12 up. See brand/android/.
-  const mark = await readFile(new URL("../brand/android/eta_splash_mark.xml", import.meta.url));
-  const animated = await readFile(new URL("../brand/android/eta_splash_icon_v31.xml", import.meta.url));
-  const hidden = await readFile(new URL("../brand/android/eta_splash_mark_start.xml", import.meta.url));
-  const v31 = path.join(RES, "drawable-v31");
-  await mkdir(v31, { recursive: true });
-  await writeFile(path.join(RES, "drawable", "eta_splash_mark.xml"), mark);
-  await writeFile(path.join(RES, "drawable", "eta_splash_icon.xml"), mark);
-  await writeFile(path.join(v31, "eta_splash_icon.xml"), animated);
-  await writeFile(path.join(v31, "eta_splash_mark_start.xml"), hidden);
+  // The phone's own splash is only a screen of the page's colour: an empty icon on that colour. The ClashETA splash is
+  // drawn by the page itself (src/ui/Splash.astro), so there is no handoff between a native picture and the web view.
+  await writeFile(path.join(RES, "drawable", "eta_splash_blank.xml"), BLANK_ICON);
 
   const file = path.join(RES, "values", "styles.xml");
   let styles = await readFile(file, "utf8");
@@ -118,10 +124,8 @@ async function theme() {
   );
   addTo(
     "AppTheme.NoActionBarLaunch",
-    '<item name="windowSplashScreenAnimatedIcon">@drawable/eta_splash_icon</item>',
+    '<item name="windowSplashScreenAnimatedIcon">@drawable/eta_splash_blank</item>',
   );
-  // How long the bars take to weave in (brand/android/eta_splash_icon_v31.xml). Must be above 0 for an animated icon.
-  addTo("AppTheme.NoActionBarLaunch", '<item name="windowSplashScreenAnimationDuration">520</item>');
   // Whatever the phone draws outside the page is a plain colour. The template's launch picture would be stretched into it.
   styles = styles.replace("@drawable/splash", "@color/eta_background");
   await writeFile(file, styles);
@@ -193,21 +197,6 @@ async function icons() {
   }
 }
 
-/**
- * Android 11 and older show this picture while the app starts; 12 and newer show the icon on the colour set above.
- * It is a plain colour on purpose: a logo here gets stretched into any strip the web view leaves uncovered.
- */
-async function splash() {
-  const pictures = (await files(RES)).filter((f) => /[\\/]drawable[^\\/]*[\\/]splash\.png$/.test(f));
-  if (!pictures.length) console.warn("android-project: no splash.png found, the template's splash stays.");
-  for (const file of pictures) {
-    const { width, height } = await sizeOf(file);
-    const background = file.includes("night") ? DARK : LIGHT;
-    const plain = sharp({ create: { width, height, channels: 3, background } });
-    await writeFile(file, await plain.png().toBuffer());
-  }
-}
-
 /** A newer build has to carry a higher versionCode to install over an older one. Minutes since 2026 never goes down. */
 async function version() {
   const file = path.join(ANDROID, "app", "build.gradle");
@@ -228,7 +217,6 @@ if (!existsSync(ANDROID)) run(["cap", "add", "android"]);
 await mainActivity();
 await theme();
 await icons();
-await splash();
 await version();
 run(["cap", "sync", "android"]);
 console.log("\nandroid/ is ready. Build it with: cd android && ./gradlew assembleDebug");

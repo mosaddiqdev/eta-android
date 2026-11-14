@@ -25,8 +25,11 @@ import Base from "../layouts/Base.astro";
       start = JSON.parse(localStorage.getItem("clasheta.settings")).startOn;
     } catch {}
     const toVillage = start === "village" || (start !== "finish" && saved);
-    if (toVillage) location.replace("/village.html");
-    else history.replaceState(null, "", "/finish.html");
+    if (toVillage) {
+      // Tells the launch splash (layouts/Base.astro) to wait: the page this goes to shows it.
+      document.documentElement.setAttribute("data-leaving", "");
+      location.replace("/village.html");
+    } else history.replaceState(null, "", "/finish.html");
   </script>
   <h1 class="sr-only">Finish time</h1>
   <FinishIsland client:only="react">
