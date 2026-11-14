@@ -2,6 +2,9 @@ import type { Account } from "../../village/types";
 
 const KEY = "clasheta.villages";
 
+/** Sent on `window` after the saved villages change, so the app can set its notifications to match (native/app.ts). */
+export const VILLAGES_CHANGED = "clasheta:villages";
+
 export interface SavedVillage {
   tag: string;
   /** The text the player pasted, so a village can be re-read after the game data changes. */
@@ -56,4 +59,5 @@ export function writeVillages(saved: SavedVillages) {
   try {
     localStorage.setItem(KEY, JSON.stringify(saved));
   } catch {}
+  window.dispatchEvent(new Event(VILLAGES_CHANGED));
 }

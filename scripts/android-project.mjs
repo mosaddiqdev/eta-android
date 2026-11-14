@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-import { splashDrawables } from "./android-splash.mjs";
+import { splashDrawables, statusIcon } from "./android-splash.mjs";
 
 const ANDROID = "android";
 const RES = path.join(ANDROID, "app", "src", "main", "res");
@@ -77,12 +77,16 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // The app's own Auto / Dark / Light, before the splash is built, so the splash is in that theme.
+        EtaThemePlugin.applySaved(this);
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         long started = SystemClock.uptimeMillis();
         splash.setKeepOnScreenCondition(
             () -> !pageReady && SystemClock.uptimeMillis() - started < SPLASH_LIMIT_MS);
         splash.setOnExitAnimationListener(this::leaveSplash);
         registerPlugin(EtaSplashPlugin.class);
+        registerPlugin(EtaThemePlugin.class);
+        registerPlugin(EtaNotificationsPlugin.class);
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -119,8 +123,9 @@ public class MainActivity extends BridgeActivity {
 }
 `,
   );
+  const dir = path.dirname(file);
   await writeFile(
-    path.join(path.dirname(file), "EtaSplashPlugin.java"),
+    path.join(dir, "EtaSplashPlugin.java"),
     `package ${pkg};
 
 import com.getcapacitor.Plugin;
@@ -139,6 +144,54 @@ public class EtaSplashPlugin extends Plugin {
 }
 `,
   );
+  return { dir, pkg };
+}
+
+/**
+ * Notifications and the theme bridge. The Java files are in scripts/android/ with the package name left for this to fill
+ * in, and the manifest gets the permissions and the two receivers. Docs: docs/android.md
+ */
+async function notifications({ dir, pkg }) {
+  const source = new URL("./android/", import.meta.url);
+  for (const name of (await readdir(source)).filter((f) => f.endsWith(".java"))) {
+    const java = await readFile(new URL(name, source), "utf8");
+    await writeFile(path.join(dir, name), java.replaceAll("__PACKAGE__", pkg));
+  }
+  const small = path.join(RES, "drawable", "ic_stat_eta.xml");
+  await writeFile(small, statusIcon((await svg("mark.svg")).toString()));
+
+  const file = path.join(ANDROID, "app", "src", "main", "AndroidManifest.xml");
+  let manifest = await readFile(file, "utf8");
+  if (!manifest.includes("</application>") || !manifest.includes("</manifest>"))
+    fail("AndroidManifest.xml has no application or manifest end tag. Did the template change?");
+  const add = (marker, tag, before) => {
+    if (!manifest.includes(marker)) manifest = manifest.replace(before, `${tag}\n    ${before}`);
+  };
+  // Permission to show notifications is asked at run time on Android 13 and up. Exact alarms are granted by the person in
+  // the phone's settings; without them the alarms still go off, up to a few minutes late.
+  for (const name of ["POST_NOTIFICATIONS", "SCHEDULE_EXACT_ALARM", "RECEIVE_BOOT_COMPLETED"])
+    add(
+      `android.permission.${name}"`,
+      `<uses-permission android:name="android.permission.${name}" />`,
+      "</manifest>",
+    );
+  add(
+    ".EtaAlarmReceiver",
+    '<receiver android:name=".EtaAlarmReceiver" android:exported="false" />',
+    "</application>",
+  );
+  add(
+    ".EtaBootReceiver",
+    `<receiver android:name=".EtaBootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>`,
+    "</application>",
+  );
+  await writeFile(file, manifest);
 }
 
 const colorFile = (name, hex) => `<?xml version="1.0" encoding="utf-8"?>
@@ -288,8 +341,9 @@ if (!existsSync(path.join("dist", "index.html")))
   fail("dist/index.html is missing. Run `npm run android`, or `npm run build` first.");
 if (!existsSync(ANDROID)) run(["cap", "add", "android"]);
 
-await mainActivity();
+const activity = await mainActivity();
 await theme();
+await notifications(activity);
 await icons();
 await version();
 run(["cap", "sync", "android"]);

@@ -6,7 +6,9 @@ import { type Clock, type StartOn, type Theme, updateSettings, useSettings } fro
 import { gameDataSummary } from "./about/gameDataAge";
 import { Collapse } from "./Collapse";
 import { canVibrate, confirm, tick } from "./haptics";
+import { NotificationSettings } from "./NotificationSettings";
 import styles from "./SettingsSheet.module.css";
+import { Switch } from "./SettingsSwitch";
 import { useSheetDialog } from "./useSheetDialog";
 
 interface Props {
@@ -123,6 +125,8 @@ function Body({ onClose, onCredits }: { onClose: () => void; onCredits: () => vo
         </Group>
       )}
 
+      <NotificationSettings />
+
       <Group title="Saved data">
         <SavedData />
       </Group>
@@ -203,41 +207,6 @@ function Segmented<T extends string>({
         </label>
       ))}
     </fieldset>
-  );
-}
-
-function Switch({
-  label,
-  hint,
-  checked,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  const id = useId();
-  return (
-    <div className={styles.switchRow}>
-      <span className={styles.switchText}>
-        <span id={id}>{label}</span>
-        <small>{hint}</small>
-      </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={id}
-        className={styles.switch}
-        onClick={() => {
-          onChange(!checked);
-          confirm();
-        }}
-      >
-        <span aria-hidden="true" />
-      </button>
-    </div>
   );
 }
 

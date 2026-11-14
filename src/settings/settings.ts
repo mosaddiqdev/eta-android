@@ -15,6 +15,17 @@ export interface Settings {
   hideFinished: boolean;
   /** A tiny buzz on taps of steppers, switches and tabs, on phones that can. */
   haptics: boolean;
+  /** Android only: tell me when an upgrade finishes. The other notify switches only matter while this is on. */
+  notify: boolean;
+  /** A Builder's Apprentice or Lab Assistant is free and something could use it. */
+  notifyHelper: boolean;
+  /** The Builder Base Clock Tower is ready to use again. */
+  notifyTower: boolean;
+  /** Notifications that arrive between `quietFrom` and `quietTo` come without sound. */
+  quietHours: boolean;
+  /** Minutes after midnight, on the phone's clock. The window may run past midnight (22:00 to 07:00). */
+  quietFrom: number;
+  quietTo: number;
 }
 
 // pages/index.astro reads this key and `startOn` in the page head before first paint, so keep the names in step.
@@ -25,11 +36,20 @@ export const DEFAULT_SETTINGS: Settings = {
   startOn: "auto",
   hideFinished: false,
   haptics: true,
+  notify: false,
+  notifyHelper: true,
+  notifyTower: true,
+  quietHours: false,
+  quietFrom: 22 * 60,
+  quietTo: 7 * 60,
 };
 
 const THEMES: readonly Theme[] = ["auto", "dark", "light"];
 const CLOCKS: readonly Clock[] = ["auto", "12", "24"];
 const STARTS: readonly StartOn[] = ["auto", "finish", "village"];
+
+const minuteOfDay = (value: unknown, fallback: number) =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 && value < 24 * 60 ? value : fallback;
 
 /** Reads whatever was stored. Old, edited or half-written values fall back one field at a time, never all at once. */
 export function parseSettings(raw: unknown): Settings {
@@ -41,6 +61,12 @@ export function parseSettings(raw: unknown): Settings {
     hideFinished: value.hideFinished === true,
     // On unless it was turned off, so an old saved value without the field keeps the default.
     haptics: value.haptics !== false,
+    notify: value.notify === true,
+    notifyHelper: value.notifyHelper !== false,
+    notifyTower: value.notifyTower !== false,
+    quietHours: value.quietHours === true,
+    quietFrom: minuteOfDay(value.quietFrom, DEFAULT_SETTINGS.quietFrom),
+    quietTo: minuteOfDay(value.quietTo, DEFAULT_SETTINGS.quietTo),
   };
 }
 
@@ -109,6 +135,18 @@ export function updateSettings(patch: Partial<Settings>) {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
   } catch {}
   publish(next);
+}
+
+/** Calls `listener` with the new settings after every change. Returns the way to stop. */
+export function watchSettings(listener: (next: Settings, previous: Settings) => void) {
+  let previous = current;
+  const call = () => {
+    const next = current;
+    listener(next, previous);
+    previous = next;
+  };
+  listeners.add(call);
+  return () => void listeners.delete(call);
 }
 
 function subscribe(listener: () => void) {

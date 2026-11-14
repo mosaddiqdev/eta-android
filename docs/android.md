@@ -92,6 +92,35 @@ One limit: the system draws the splash before the app runs, so it follows the ph
 
 To change it: motion, distances and colours are in `scripts/android-splash.mjs`; the hold, the fade and the 3 second limit are at the top of `MainActivity` in `scripts/android-project.mjs`.
 
+## The splash follows the theme
+
+The launch splash is drawn by Android before any page runs, so it can't read the app's setting from the page. The page
+tells Android instead (`src/native/nativeTheme.ts`, `EtaThemePlugin.java`): the choice is kept in the app's own
+preferences and `MainActivity` applies it before the splash is built. On Android 12 and newer that is
+`UiModeManager.setApplicationNightMode`, which Android remembers for the app; before that it is
+`AppCompatDelegate.setDefaultNightMode`, and the splash there is the system's own window background, which a forced
+theme can't change. Unchecked on a device: that the 12+ splash is in the forced theme on the very next cold start.
+
+## Notifications
+
+The page works out what to say, the phone shows it. `src/notifications/compose.ts` turns the plan's events into
+notifications: an upgrade finished (the building at its new level, or the hero or pet), a helper is free (the helper's
+portrait, and the upgrade it would save the most time on), and the Clock Tower is ready. Each has a picture from
+`public/game` in the app's assets, which `EtaNotifier.java` decodes and centres on a square for the large icon.
+
+- `src/native/notificationSync.ts` sends the whole list to Android at app start, when the saved villages change and when
+  a notification setting changes. Each time it replaces the list, so there are never two alarms for one thing.
+- `EtaNotifier.java` keeps the list and sets one `AlarmManager` alarm for each (`setExactAndAllowWhileIdle` when
+  exact alarms are allowed, `setAndAllowWhileIdle` otherwise). Restarting the phone or updating the app clears alarms, so
+  `EtaBootReceiver` sets them again from the saved list and still shows anything that came due in the last two hours.
+- One channel per kind (upgrades, helpers, tower) so each can be changed in the phone's settings, and a silent one for
+  quiet hours, which the page decides per notification from the times in Settings.
+- Permissions: `POST_NOTIFICATIONS` is asked at run time on Android 13 and up. `SCHEDULE_EXACT_ALARM` is granted by the
+  person in the phone's settings (Settings links there); without it notifications can come a few minutes late. It is
+  not a Play-friendly permission for this kind of app, so a Play release should rethink it.
+- Times come from the last import. A potion used after it isn't known, so paste again to bring them back in line.
+- Not checked on a device: Doze timing, the boot receiver, and how the large icon looks on each maker's skin.
+
 ## The status bar
 
 A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { LANE_COLORS, readMark, SPLASH_MS, splashDrawables } from "./android-splash.mjs";
+import { LANE_COLORS, readMark, SPLASH_MS, splashDrawables, statusIcon } from "./android-splash.mjs";
 
 const mark = readFileSync(new URL("../brand/mark.svg", import.meta.url), "utf8");
 const tokens = readFileSync(new URL("../src/styles/tokens.css", import.meta.url), "utf8");
@@ -85,5 +85,16 @@ describe("splashDrawables", () => {
         expect(opened).toBe(closed);
       }
     }
+  });
+});
+
+describe("statusIcon", () => {
+  it("is one white E, centred on its own square", () => {
+    const xml = statusIcon(mark);
+    expect(xml).toContain('android:fillColor="#FFFFFF"');
+    expect(xml).toContain('android:viewportWidth="1100"');
+    // Half the 1100 square less half the 762 wide viewBox, plus the logo's own shift.
+    expect(xml).toContain(`android:translateX="${readMark(mark, 1100).x}"`);
+    expect(xml).not.toContain("clip-path");
   });
 });
