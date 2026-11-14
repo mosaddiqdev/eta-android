@@ -2,7 +2,7 @@ import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { getSettings } from "../settings/settings";
 import { showInsetsDebug } from "./debug";
-import { endSplashWhenReady } from "./splash";
+import { releaseLaunchSplash } from "./launchSplash";
 import { paintSystemBars } from "./systemBars";
 
 /**
@@ -13,7 +13,7 @@ import { paintSystemBars } from "./systemBars";
 export function startApp() {
   if (!Capacitor.isNativePlatform()) return;
   paintSystemBars(getSettings().theme);
-  endSplashWhenReady();
+  void releaseLaunchSplash();
   if (import.meta.env.PUBLIC_DEBUG_INSETS === "1") showInsetsDebug();
 
   void App.addListener("backButton", ({ canGoBack }) => {

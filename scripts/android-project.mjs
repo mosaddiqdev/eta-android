@@ -6,9 +6,10 @@
 // up here as a clear error and not as an app that looks wrong. Docs: docs/android.md
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { splashDrawables } from "./android-splash.mjs";
 
 const ANDROID = "android";
 const RES = path.join(ANDROID, "app", "src", "main", "res");
@@ -38,6 +39,10 @@ async function files(dir) {
  * EdgeToEdge.enable has to come AFTER super.onCreate. BridgeActivity swaps the launch theme (which has a title bar)
  * for AppTheme.NoActionBar inside it; enabling first builds the window under the launch theme, and the phone then
  * shows a title bar with the app name above the page.
+ *
+ * The launch splash (see theme() for the picture) is installed BEFORE super.onCreate, as Android's guide asks. While
+ * the page loads, Android holds the app's first frame back and keeps the splash up; the page says it is ready through
+ * EtaSplashPlugin, and the splash fades out over a page that is already drawn. src/native/launchSplash.ts is the other half.
  */
 async function mainActivity() {
   const [file] = (await files(path.join(ANDROID, "app", "src", "main", "java"))).filter((f) =>
@@ -51,42 +56,90 @@ async function mainActivity() {
     `package ${pkg};
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
+import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import androidx.activity.EdgeToEdge;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.core.splashscreen.SplashScreenViewProvider;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    // If the page never says it is ready (a script error, say), the splash still ends.
+    private static final long SPLASH_LIMIT_MS = 3000;
+    // A page that is ready early still lets the mark finish moving, but waits no more than this for it.
+    private static final long MARK_WAIT_MS = 400;
+    private static final long FADE_MS = 260;
+
+    // Set by EtaSplashPlugin once the page has loaded and gone idle.
+    volatile boolean pageReady = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        SplashScreen splash = SplashScreen.installSplashScreen(this);
+        long started = SystemClock.uptimeMillis();
+        splash.setKeepOnScreenCondition(
+            () -> !pageReady && SystemClock.uptimeMillis() - started < SPLASH_LIMIT_MS);
+        splash.setOnExitAnimationListener(this::leaveSplash);
+        registerPlugin(EtaSplashPlugin.class);
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         // The page has fixed bars (header, result dock) that Android's stretch effect would warp along with the content,
         // and the web view's own scrollbar is drawn by Android, out of reach of CSS.
         WebView webView = getBridge() != null ? getBridge().getWebView() : null;
         if (webView != null) {
+            // A web view with nothing drawn yet is white, which would flash in the dark between the splash and the page.
+            webView.setBackgroundColor(getColor(R.color.eta_background));
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
         }
     }
+
+    // Fades the splash out and lets it grow a little, over the page underneath. Both run on the render thread, so the
+    // page's first moments can't make the exit stutter. The curve is Material 3's emphasized accelerate: it leaves the
+    // splash almost untouched for the first frames, while the page paints under it.
+    private void leaveSplash(SplashScreenViewProvider splash) {
+        // Cutting the mark off halfway through its slide would read as a stutter, so it is let finish first.
+        long markLeft = splash.getIconAnimationDurationMillis()
+            - (System.currentTimeMillis() - splash.getIconAnimationStartMillis());
+        long wait = Math.max(0, Math.min(markLeft, MARK_WAIT_MS));
+        splash.getView().animate()
+            .alpha(0f)
+            .scaleX(1.05f)
+            .scaleY(1.05f)
+            .setStartDelay(wait)
+            .setDuration(FADE_MS)
+            .setInterpolator(new PathInterpolator(0.3f, 0f, 0.8f, 0.15f))
+            .withEndAction(splash::remove)
+            .start();
+    }
+}
+`,
+  );
+  await writeFile(
+    path.join(path.dirname(file), "EtaSplashPlugin.java"),
+    `package ${pkg};
+
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+// The page's way of telling MainActivity it is up, so the launch splash can end (src/native/launchSplash.ts).
+@CapacitorPlugin(name = "EtaSplash")
+public class EtaSplashPlugin extends Plugin {
+    @PluginMethod
+    public void ready(PluginCall call) {
+        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).pageReady = true;
+        call.resolve();
+    }
 }
 `,
   );
 }
-
-// A fully transparent icon: the phone's splash shows the window colour and nothing else.
-const BLANK_ICON = `<?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M0,0h24v24h-24z" />
-</vector>
-`;
 
 const colorFile = (name, hex) => `<?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -94,23 +147,36 @@ const colorFile = (name, hex) => `<?xml version="1.0" encoding="utf-8"?>
 </resources>
 `;
 
-/** The window and the phone's splash take the page's background, in light and in dark, so nothing flashes white. */
+/**
+ * The window and the launch splash take the page's background, in light and in dark, so nothing flashes white. The
+ * splash is the E from brand/mark.svg on that colour (scripts/android-splash.mjs): animated on Android 12 and newer,
+ * standing still before that. MainActivity keeps it up until the page is ready.
+ */
 async function theme() {
   await writeFile(path.join(RES, "values", "eta_colors.xml"), colorFile("eta_background", LIGHT));
   const night = path.join(RES, "values-night");
   await mkdir(night, { recursive: true });
   await writeFile(path.join(night, "eta_colors.xml"), colorFile("eta_background", DARK));
 
-  // The phone's own splash is only a screen of the page's colour: an empty icon on that colour. The ClashETA splash is
-  // drawn by the page itself (src/ui/Splash.astro), so there is no handoff between a native picture and the web view.
-  await writeFile(path.join(RES, "drawable", "eta_splash_blank.xml"), BLANK_ICON);
+  for (const { file, xml } of splashDrawables((await svg("mark.svg")).toString())) {
+    await mkdir(path.join(RES, path.dirname(file)), { recursive: true });
+    await writeFile(path.join(RES, file), xml);
+  }
+  // The template's own launch picture, in every size. Nothing points at it any more.
+  for (const file of (await files(RES)).filter((f) => /[\\/]drawable[^\\/]*[\\/]splash\.png$/.test(f)))
+    await rm(file, { force: true });
 
   const file = path.join(RES, "values", "styles.xml");
   let styles = await readFile(file, "utf8");
+  // Puts the item first in the style, replacing one of the same name, so running this again on an android/ that
+  // already has it can't leave two.
   const addTo = (style, item) => {
-    const open = new RegExp(`(<style\\s+name="${style.replace(".", "\\.")}"[^>]*>)`);
-    if (!open.test(styles)) fail(`Style ${style} not found in styles.xml. Did the template change?`);
-    if (!styles.includes(item)) styles = styles.replace(open, `$1\n        ${item}`);
+    const name = /name="([^"]+)"/.exec(item)[1];
+    const block = new RegExp(`(<style\\s+name="${style.replace(".", "\\.")}"[^>]*>)([\\s\\S]*?)(</style>)`);
+    const found = block.exec(styles);
+    if (!found) fail(`Style ${style} not found in styles.xml. Did the template change?`);
+    const rest = found[2].replace(new RegExp(`\\s*<item name="${name}">[^<]*</item>`), "");
+    styles = styles.replace(block, () => `${found[1]}\n        ${item}${rest}${found[3]}`);
   };
   addTo("AppTheme.NoActionBar", '<item name="android:windowBackground">@color/eta_background</item>');
   // Tells the phone the page may draw into the camera cutout. Without it some makers (Xiaomi's HyperOS, for one) keep
@@ -124,7 +190,12 @@ async function theme() {
   );
   addTo(
     "AppTheme.NoActionBarLaunch",
-    '<item name="windowSplashScreenAnimatedIcon">@drawable/eta_splash_blank</item>',
+    '<item name="windowSplashScreenAnimatedIcon">@drawable/eta_splash_icon</item>',
+  );
+  // The theme the app wears once the splash is gone. installSplashScreen in MainActivity switches to it.
+  addTo(
+    "AppTheme.NoActionBarLaunch",
+    '<item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>',
   );
   // Whatever the phone draws outside the page is a plain colour. The template's launch picture would be stretched into it.
   styles = styles.replace("@drawable/splash", "@color/eta_background");

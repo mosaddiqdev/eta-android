@@ -26,7 +26,7 @@ import Base from "../layouts/Base.astro";
     } catch {}
     const toVillage = start === "village" || (start !== "finish" && saved);
     if (toVillage) {
-      // Tells the launch splash (layouts/Base.astro) to wait: the page this goes to shows it.
+      // Tells native/launchSplash.ts to keep the launch splash up: the page this goes to lets it go.
       document.documentElement.setAttribute("data-leaving", "");
       location.replace("/village.html");
     } else history.replaceState(null, "", "/finish.html");
