@@ -77,11 +77,28 @@ The generated `MainActivity` turns off the web view's scrollbars (Android draws 
 
 ## The splash screen
 
-One mark on a calm background, nothing else. The window background is the page's dark or light colour. In the middle, the ClashETA E draws itself in as three bars (top and bottom slide in from the left, the middle from the right, each fading in, about half a second). On Android 12 and newer that is a real animated vector (`brand/android/eta_splash_icon_v31.xml`); older versions show the still mark (`eta_splash_mark.xml`). The mark is drawn from the same path as `brand/mark.svg`, sized for the 288dp canvas whose 192dp centre circle Android shows. `scripts/android-project.mjs` copies the files into the project and points the launch theme at them. To change the timing, edit the `duration` values in the animated file and `windowSplashScreenAnimationDuration` in the script; `SPLASH_MS` in `src/native/app.ts` is how long the splash is held.
+One mark on a calm background, nothing else. The window background is the page's dark or light colour.
+
+The sequence, from the tap on the icon:
+
+| Beat | What happens | Who controls it |
+| --- | --- | --- |
+| 0 | The phone's own launch animation opens the window. | The launcher. The window is already the page colour, so nothing flashes. |
+| 0 to 520 ms | The ClashETA E arrives: the whole mark settles in from 94% size while its bars come in one after another, 70 ms apart (top and bottom from the left, the middle from the right), each fading in. Material 3's emphasized decelerate curve throughout. | `brand/android/eta_splash_icon_v31.xml` |
+| about 520 to 700 ms | The finished mark rests for a beat. | `SPLASH_MIN_MS` in `src/native/app.ts` |
+| about 700 to 950 ms | The splash fades out over the page, which is already drawn underneath. | `launchFadeOutDuration` in `capacitor.config.json` |
+
+On Android 12 and newer the arrival is a real animated vector (`eta_splash_icon_v31.xml`, starting from `eta_splash_mark_start.xml` where every bar is hidden). Older versions show the still mark (`eta_splash_mark.xml`). With "Remove animations" turned on, Android skips straight to the finished mark. The mark is drawn from the same path as `brand/mark.svg`, sized for the 288dp canvas whose 192dp centre circle Android shows. `scripts/android-project.mjs` copies the files into the project and points the launch theme at them.
+
+To change the timing: the `duration` and `startOffset` values in the animated file, `windowSplashScreenAnimationDuration` in the script (keep it at or above the longest animation), `SPLASH_MIN_MS` and `SPLASH_MAX_MS` in `src/native/app.ts`, and `launchFadeOutDuration` in `capacitor.config.json`.
 
 ## Launch and the status bar
 
-The launch splash is held until the page has painted: `startApp` hides it after two animation frames, and `capacitor.config.json` makes it hide by itself after 1.5 seconds if that never happens. Without that, Android drops the splash as soon as the window exists and the web view is blank for a moment, which shows as a flicker. The window, the splash and the launcher icon background are all the page's dark or light colour, so nothing differs in that gap. A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
+The launch splash is held until the page's islands have mounted: `startApp` polls with timers and hides it, and `capacitor.config.json` makes it hide by itself after 1.5 seconds if that never happens. Timers, not animation frames, because `@capacitor/splash-screen` holds back the app's first frame until the splash is hidden, so a frame callback would wait for something that only comes after. Without any hold, Android drops the splash as soon as the window exists and the web view is blank for a moment, which shows as a flicker. The window, the splash and the launcher icon background are all the page's dark or light colour, so nothing differs in that gap. A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
+
+## The result sheet and the keyboard
+
+While a text field has focus (`useTyping` in `src/features/finish/result/`), the verdict chip and suggestions leave the result sheet and it glides down to its summary line, so it doesn't sit over the boxes being typed in. It comes back a moment after the field loses focus.
 
 ## The page never pans sideways
 

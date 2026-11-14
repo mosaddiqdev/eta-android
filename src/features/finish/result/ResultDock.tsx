@@ -10,6 +10,7 @@ import { PlanTimeline } from "./PlanTimeline";
 import styles from "./ResultDock.module.css";
 import { Suggestions } from "./Suggestions";
 import { useSheet } from "./useSheet";
+import { useTyping } from "./useTyping";
 import { VerdictChip } from "./VerdictChip";
 
 interface Props {
@@ -28,6 +29,7 @@ export function ResultDock({ plan, now }: Props) {
   const shown = plan ?? lastPlan.current;
   const active = plan !== null;
   const sheet = useSheet(active, shown !== null);
+  const typing = useTyping();
 
   return (
     <>
@@ -44,6 +46,7 @@ export function ResultDock({ plan, now }: Props) {
           data-open={sheet.open}
           data-active={active}
           data-solo={shown === null}
+          data-typing={typing}
         >
           <div className={styles.stage}>
             {shown && (
@@ -84,8 +87,10 @@ function LiveDock({ plan, now, sheet }: { plan: Plan; now: number; sheet: Return
           <span className={styles.togo}>{secondsToGo > 0 ? `in ${formatClock(secondsToGo)}` : "Done"}</span>
           <ChevronUp className={styles.chevron} size={20} aria-hidden="true" />
         </button>
-        <VerdictChip verdict={verdict} />
-        <Suggestions verdict={verdict} />
+        <div className={styles.extras}>
+          <VerdictChip verdict={verdict} />
+          <Suggestions verdict={verdict} />
+        </div>
       </div>
 
       <div className={styles.hidden} ref={sheet.hidden} id="result-details" inert={!sheet.open}>

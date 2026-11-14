@@ -20,6 +20,16 @@
   pointer-events: auto;
 }
 
+/* The verdict and the suggestions step aside while a field has the keyboard; the sheet glides down to its summary line
+   (useSheet re-measures when its height changes) instead of covering the boxes being typed in. */
+.extras {
+  display: contents;
+}
+
+.panel[data-typing="true"] .extras {
+  display: none;
+}
+
 .panel[data-dragging="true"],
 .panel[data-snap="true"] {
   transition: none;

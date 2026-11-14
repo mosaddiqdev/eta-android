@@ -91,11 +91,13 @@ async function theme() {
   // The splash mark: still below Android 12, animated (the bars weave in) from Android 12 up. See brand/android/.
   const mark = await readFile(new URL("../brand/android/eta_splash_mark.xml", import.meta.url));
   const animated = await readFile(new URL("../brand/android/eta_splash_icon_v31.xml", import.meta.url));
+  const hidden = await readFile(new URL("../brand/android/eta_splash_mark_start.xml", import.meta.url));
   const v31 = path.join(RES, "drawable-v31");
   await mkdir(v31, { recursive: true });
   await writeFile(path.join(RES, "drawable", "eta_splash_mark.xml"), mark);
   await writeFile(path.join(RES, "drawable", "eta_splash_icon.xml"), mark);
   await writeFile(path.join(v31, "eta_splash_icon.xml"), animated);
+  await writeFile(path.join(v31, "eta_splash_mark_start.xml"), hidden);
 
   const file = path.join(RES, "values", "styles.xml");
   let styles = await readFile(file, "utf8");
@@ -119,7 +121,7 @@ async function theme() {
     '<item name="windowSplashScreenAnimatedIcon">@drawable/eta_splash_icon</item>',
   );
   // How long the bars take to weave in (brand/android/eta_splash_icon_v31.xml). Must be above 0 for an animated icon.
-  addTo("AppTheme.NoActionBarLaunch", '<item name="windowSplashScreenAnimationDuration">500</item>');
+  addTo("AppTheme.NoActionBarLaunch", '<item name="windowSplashScreenAnimationDuration">520</item>');
   // Whatever the phone draws outside the page is a plain colour. The template's launch picture would be stretched into it.
   styles = styles.replace("@drawable/splash", "@color/eta_background");
   await writeFile(file, styles);

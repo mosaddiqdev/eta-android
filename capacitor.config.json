@@ -9,7 +9,7 @@
     "SplashScreen": {
       "launchAutoHide": true,
       "launchShowDuration": 1500,
-      "launchFadeOutDuration": 150
+      "launchFadeOutDuration": 250
     }
   }
 }
