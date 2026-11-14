@@ -10,12 +10,12 @@ ClashETA ships as an Android app made with [Capacitor](https://capacitorjs.com):
 
 ## Toolchain (Capacitor 8)
 
-| Piece | Version | Where it is set |
-| --- | --- | --- |
-| Node | 24 (Capacitor needs 22+) | `.nvmrc` |
-| Java | 21 | `actions/setup-java` in the workflow |
-| Android Gradle Plugin / Gradle | 8.13.0 / 8.14.3 | the generated template |
-| compileSdk / targetSdk / minSdk | 36 / 36 / 24 | the generated template |
+| Piece                           | Version                  | Where it is set                      |
+| ------------------------------- | ------------------------ | ------------------------------------ |
+| Node                            | 24 (Capacitor needs 22+) | `.nvmrc`                             |
+| Java                            | 21                       | `actions/setup-java` in the workflow |
+| Android Gradle Plugin / Gradle  | 8.13.0 / 8.14.3          | the generated template               |
+| compileSdk / targetSdk / minSdk | 36 / 36 / 24             | the generated template               |
 
 When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android Studio 2026.1.1; read its upgrade guide before raising `@capacitor/*` to `^9`.
 
@@ -23,12 +23,12 @@ When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android
 
 `src/native/` is the only code that knows about the app. In a desktop browser every function falls back to the web feature, so `npm run dev` still works.
 
-| File | Job |
-| --- | --- |
-| `app.ts` | Back button: closes the open menu or sheet, then goes back a page, then leaves the app. Sets the status bar icons on start. |
-| `clipboard.ts` | Paste button and Copy through the Clipboard plugin. |
-| `share.ts` | The Android share sheet for "Share upgrades". |
-| `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark). |
+| File            | Job                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `app.ts`        | Back button: closes the open menu or sheet, then goes back a page, then leaves the app. Sets the status bar icons on start. |
+| `clipboard.ts`  | Paste button and Copy through the Clipboard plugin.                                                                         |
+| `share.ts`      | The Android share sheet for "Share upgrades".                                                                               |
+| `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark).                              |
 
 Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`EdgeToEdge.enable` in the generated `MainActivity`), and the page's own `env(safe-area-inset-*)` padding keeps content clear of the bars. `SystemBars.insetsHandling` is `native` in `capacitor.config.json`, Capacitor's recommended setting: on Android System WebView 140 or newer the page reports the real insets itself, and on older ones Capacitor pads the web view and the page sees 0, so nothing is padded twice.
 
@@ -45,7 +45,6 @@ cd android && ./gradlew assembleDebug
 ```
 
 `npm run android` runs `scripts/android-project.mjs`, which runs `cap add android` the first time, then:
-
 - writes `MainActivity` with edge-to-edge on,
 - draws the launcher icons (adaptive foreground, round and legacy) and the splash pictures from `brand/`,
 - sets the window and Android 12+ splash background to the page colours (light and dark),
@@ -78,7 +77,6 @@ The generated `MainActivity` turns off the web view's scrollbars (Android draws 
 ## The splash screen
 
 Two layers on one colour, with nothing to hand off between them.
-
 1. **The phone's splash** is only a screen of the page's colour (dark or light), with an empty icon on it. `scripts/android-project.mjs` sets that up (`windowSplashScreenBackground`, a transparent `eta_splash_blank` icon, the window background). It is on screen for the instant before the page exists.
 2. **The ClashETA splash is part of the page.** `src/ui/Splash.astro` draws the E from `brand/mark.svg` as three bar layers, `src/styles/splash.css` animates them, and `src/native/splash.ts` decides when it ends. Because it lives in the same document as the app, the end is a plain fade over a page that is already drawn, not a switch between a native picture and the web view.
 
@@ -86,12 +84,12 @@ Why not Android's own animated splash icon: it can only show one icon on one col
 
 The sequence, from the tap on the icon:
 
-| Beat | What happens | Where it is set |
-| --- | --- | --- |
-| 0 | The phone's launch animation opens the window, on the page colour. | The launcher |
-| 0 to 520 ms | The whole mark settles in from 94% while the bars arrive one after another, 70 ms apart (top and bottom from the left, the middle from the right), each fading in. | `splash.css` |
-| 520 to 750 ms | The finished mark rests for a beat. | `MIN_MS` in `splash.ts` |
-| after that | Once the page has loaded and gone idle, a 220 ms fade reveals it. | `splash.ts`, `splash.css` |
+| Beat          | What happens                                                                                                                                                       | Where it is set           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| 0             | The phone's launch animation opens the window, on the page colour.                                                                                                 | The launcher              |
+| 0 to 520 ms   | The whole mark settles in from 94% while the bars arrive one after another, 70 ms apart (top and bottom from the left, the middle from the right), each fading in. | `splash.css`              |
+| 520 to 750 ms | The finished mark rests for a beat.                                                                                                                                | `MIN_MS` in `splash.ts`   |
+| after that    | Once the page has loaded and gone idle, a 220 ms fade reveals it.                                                                                                  | `splash.ts`, `splash.css` |
 
 It runs on transform and opacity only, which the compositor handles without the main thread, so the page starting up underneath cannot make it stutter. It uses the page's own theme colour, so a forced Light or Dark theme is honoured from the first frame of the page. With "Remove animations" on, the finished mark simply appears and fades. It shows once per app start (a session flag), never in a browser, and a CSS timer ends it after 2.4 seconds even if the script never does. The home page marks itself "leaving" when it redirects to My village, so the page it lands on shows the splash instead.
 
