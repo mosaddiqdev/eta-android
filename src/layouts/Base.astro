@@ -9,10 +9,8 @@ import "../styles/tokens.css";
 import "../styles/base.css";
 import "../styles/sheet.css";
 import "../styles/skeleton.css";
-import "../styles/splash.css";
 import Logo from "../ui/Logo.astro";
 import SideMenu from "../ui/SideMenu";
-import Splash from "../ui/Splash.astro";
 
 interface Props {
   title: string;
@@ -75,24 +73,6 @@ const ogAlt =
       } catch (e) {}
     </script>
     <script is:inline>
-      // The launch splash (styles/splash.css) shows once per app start and only inside the app, never in a browser.
-      // Not on a page that is about to send the visitor elsewhere (data-leaving, set by the home page): the next page
-      // shows it instead. Decided here, before first paint, so the page never shows for a frame and then hides.
-      try {
-        var cap = window.Capacitor;
-        var root = document.documentElement;
-        if (
-          cap &&
-          cap.isNativePlatform &&
-          cap.isNativePlatform() &&
-          !sessionStorage.getItem("clasheta.splashed") &&
-          !root.hasAttribute("data-leaving")
-        ) {
-          root.setAttribute("data-splash", "");
-        }
-      } catch (e) {}
-    </script>
-    <script is:inline>
       // The rest of "behaves like an app" (see base.css): no drag-out of pictures, and on a touch screen no menu when
       // something is held down, except in a field where cut, copy and paste are wanted.
       document.addEventListener("dragstart", function (e) {
@@ -109,7 +89,6 @@ const ogAlt =
     <title>{title}</title>
   </head>
   <body>
-    <Splash />
     <header class="bar page">
       <a class="brand" href="/" aria-label="ClashETA home">
         <Logo />
