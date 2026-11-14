@@ -81,9 +81,14 @@ html {
   scroll-padding-bottom: calc(var(--dock-h, 0px) + 1rem);
 }
 
-/* There is no browser around the page, so a pull from the top has nothing to refresh and only stretches the page. */
+/* There is no browser around the page, so a pull from the top has nothing to refresh and only stretches the page.
+   The page also never pans sideways: anything a few pixels too wide (a badge that sticks out of its card, a panel
+   sliding in) would otherwise let a diagonal drag shift the whole layout. Rows that scroll sideways on purpose are
+   their own scrollers, so they keep working, and the swipe between tabs reads touches, not scrolling. */
 html {
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+  overflow-x: clip;
+  touch-action: pan-y;
 }
 
 body {

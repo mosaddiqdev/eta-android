@@ -128,10 +128,7 @@ async function theme() {
 // The logo, from the same sources the site's icons are built from (scripts/build-brand-assets.mjs).
 const svg = (name) => readFile(new URL(`../brand/${name}`, import.meta.url));
 const raster = async (name, size, density = 384) =>
-  sharp(await svg(name), { density })
-    .resize(size, size)
-    .png()
-    .toBuffer();
+  sharp(await svg(name), { density }).resize(size, size).png().toBuffer();
 
 async function sizeOf(file) {
   const { width, height } = await sharp(file).metadata();
@@ -162,6 +159,17 @@ async function icons() {
     fail("The adaptive icon doesn't use ic_launcher_background and _foreground. Did the template change?");
   const background = path.join(RES, "values", "ic_launcher_background.xml");
   await writeFile(background, colorFile("ic_launcher_background", DARK));
+
+  // Android 13+ tints the icon to the wallpaper when the person turns on themed icons. It uses the shape of the
+  // foreground (the E with its slits) and ignores its colours, so the same picture does for both.
+  for (const name of ["ic_launcher.xml", "ic_launcher_round.xml"]) {
+    const file = path.join(RES, "mipmap-anydpi-v26", name);
+    const xml = await readFile(file, "utf8").catch(() => "");
+    if (xml.includes("</adaptive-icon>") && !xml.includes("<monochrome")) {
+      const layer = '    <monochrome android:drawable="@mipmap/ic_launcher_foreground"/>\n</adaptive-icon>';
+      await writeFile(file, xml.replace("</adaptive-icon>", layer));
+    }
+  }
 
   for (const file of launcher) {
     const { width } = await sizeOf(file);

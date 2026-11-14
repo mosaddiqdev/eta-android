@@ -10,12 +10,12 @@ ClashETA ships as an Android app made with [Capacitor](https://capacitorjs.com):
 
 ## Toolchain (Capacitor 8)
 
-| Piece                           | Version                  | Where it is set                      |
-| ------------------------------- | ------------------------ | ------------------------------------ |
-| Node                            | 24 (Capacitor needs 22+) | `.nvmrc`                             |
-| Java                            | 21                       | `actions/setup-java` in the workflow |
-| Android Gradle Plugin / Gradle  | 8.13.0 / 8.14.3          | the generated template               |
-| compileSdk / targetSdk / minSdk | 36 / 36 / 24             | the generated template               |
+| Piece | Version | Where it is set |
+| --- | --- | --- |
+| Node | 24 (Capacitor needs 22+) | `.nvmrc` |
+| Java | 21 | `actions/setup-java` in the workflow |
+| Android Gradle Plugin / Gradle | 8.13.0 / 8.14.3 | the generated template |
+| compileSdk / targetSdk / minSdk | 36 / 36 / 24 | the generated template |
 
 When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android Studio 2026.1.1; read its upgrade guide before raising `@capacitor/*` to `^9`.
 
@@ -23,12 +23,12 @@ When Capacitor 9 is released it needs Node 24, Java and Gradle bumps and Android
 
 `src/native/` is the only code that knows about the app. In a desktop browser every function falls back to the web feature, so `npm run dev` still works.
 
-| File            | Job                                                                                                                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `app.ts`        | Back button: closes the open menu or sheet, then goes back a page, then leaves the app. Sets the status bar icons on start. |
-| `clipboard.ts`  | Paste button and Copy through the Clipboard plugin.                                                                         |
-| `share.ts`      | The Android share sheet for "Share upgrades".                                                                               |
-| `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark).                              |
+| File | Job |
+| --- | --- |
+| `app.ts` | Back button: closes the open menu or sheet, then goes back a page, then leaves the app. Sets the status bar icons on start. |
+| `clipboard.ts` | Paste button and Copy through the Clipboard plugin. |
+| `share.ts` | The Android share sheet for "Share upgrades". |
+| `systemBars.ts` | Status and navigation bar icon colour, following the theme (including a forced Light or Dark). |
 
 Haptics (`src/ui/haptics.ts`) use the Haptics plugin inside the app. The page draws edge to edge (`EdgeToEdge.enable` in the generated `MainActivity`), and the page's own `env(safe-area-inset-*)` padding keeps content clear of the bars. `SystemBars.insetsHandling` is `native` in `capacitor.config.json`, Capacitor's recommended setting: on Android System WebView 140 or newer the page reports the real insets itself, and on older ones Capacitor pads the web view and the page sees 0, so nothing is padded twice.
 
@@ -45,6 +45,7 @@ cd android && ./gradlew assembleDebug
 ```
 
 `npm run android` runs `scripts/android-project.mjs`, which runs `cap add android` the first time, then:
+
 - writes `MainActivity` with edge-to-edge on,
 - draws the launcher icons (adaptive foreground, round and legacy) and the splash pictures from `brand/`,
 - sets the window and Android 12+ splash background to the page colours (light and dark),
@@ -81,6 +82,10 @@ One mark on a calm background, nothing else. The window background is the page's
 ## Launch and the status bar
 
 The launch splash is held until the page has painted: `startApp` hides it after two animation frames, and `capacitor.config.json` makes it hide by itself after 1.5 seconds if that never happens. Without that, Android drops the splash as soon as the window exists and the web view is blank for a moment, which shows as a flicker. The window, the splash and the launcher icon background are all the page's dark or light colour, so nothing differs in that gap. A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
+
+## The page never pans sideways
+
+`html` in `src/styles/base.css` is `overflow-x: clip` and `touch-action: pan-y`. Anything a few pixels wider than the screen (the panel slide-in moves a whole tab 1rem sideways, and the idle badges stick out of their cards) would otherwise let a diagonal drag shift the whole layout. Rows that scroll sideways on purpose are scrollers of their own and keep working. If a layout ever seems clipped on the right, run the debug build: its last line names the rightmost element.
 
 ## A gap above the page
 

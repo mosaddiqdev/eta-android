@@ -19,12 +19,23 @@ export function showInsetsDebug() {
     const css = getComputedStyle(probe);
     const view = window.visualViewport;
     const header = document.querySelector("header")?.getBoundingClientRect();
+    let widest = "";
+    let most = 0;
+    for (const el of document.body.querySelectorAll("*")) {
+      const right = el.getBoundingClientRect().right;
+      if (right > most) {
+        most = right;
+        widest = `${el.tagName.toLowerCase()}.${(el.getAttribute("class") ?? "").slice(0, 40)}`;
+      }
+    }
+    const doc = document.documentElement;
     box.textContent = [
       `UA ${/Chrome\/[\d.]+/.exec(navigator.userAgent)?.[0] ?? navigator.userAgent}`,
       `window ${innerWidth}x${innerHeight}  screen ${screen.width}x${screen.height}  dpr ${devicePixelRatio}`,
       `env top ${css.paddingTop}  bottom ${css.paddingBottom}`,
       `visualViewport top ${view?.offsetTop}  height ${view?.height}`,
       `header top ${header?.top}  height ${header?.height}  scrollY ${scrollY}`,
+      `sideways overflow ${doc.scrollWidth - doc.clientWidth}  rightmost ${Math.round(most)} ${widest}`,
     ].join("\n");
   };
   update();
