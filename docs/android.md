@@ -107,7 +107,6 @@ The page works out what to say, the phone shows it. `src/notifications/compose.t
 notifications: an upgrade finished (the building at its new level, or the hero or pet), a helper is free (the helper's
 portrait, and the upgrade it would save the most time on), and the Clock Tower is ready. Each has a picture from
 `public/game` in the app's assets, which `EtaNotifier.java` decodes and centres on a square for the large icon.
-
 - `src/native/notificationSync.ts` sends the whole list to Android at app start, when the saved villages change and when
   a notification setting changes. Each time it replaces the list, so there are never two alarms for one thing.
 - `EtaNotifier.java` keeps the list and sets one `AlarmManager` alarm for each (`setExactAndAllowWhileIdle` when
