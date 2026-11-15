@@ -106,12 +106,8 @@
   background: var(--raised);
 }
 
-/* A kind: its picture beside its switch, and underneath, indented to the text, its sound. */
-.kind {
-  display: grid;
-}
-
-.kind + .kind {
+/* A kind: its picture beside its switch. */
+.kindTop + .kindTop {
   padding-top: 0.75rem;
   border-top: 1px solid var(--line);
 }
@@ -127,58 +123,20 @@
   min-width: 0;
 }
 
-.soundLine {
+.hear {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.hear button {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-  min-height: 2.75rem;
-  margin-top: 0.25rem;
-  padding: 0 0.25rem 0 3.5rem;
-  border: 0;
-  background: none;
-  color: var(--text-soft);
-  font: inherit;
-  font-size: 0.875rem;
-  text-align: left;
-  cursor: pointer;
+  gap: 0.375rem;
 }
 
-.soundLine b {
-  margin-left: 0.25rem;
-  color: var(--text);
-  font-weight: 600;
-}
-
-.soundLine svg {
-  flex: none;
-  transition: rotate var(--dur-state) var(--ease);
-}
-
-.soundLine svg[data-open="true"] {
-  rotate: 180deg;
-}
-
-.soundLine:focus-visible {
-  outline: 3px solid var(--text);
-  outline-offset: 2px;
-  border-radius: var(--radius-control);
-}
-
-.soundPanel {
-  display: grid;
-  gap: 0.75rem;
-  justify-items: start;
-  padding: 0.25rem 0 0.25rem 3.5rem;
-}
-
-.soundPanel > fieldset {
-  width: 100%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .soundLine svg {
-    transition: none;
-  }
+.actions {
+  display: flex;
+  padding-inline: 0.25rem;
 }

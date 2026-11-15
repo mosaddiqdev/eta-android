@@ -1,6 +1,6 @@
 import type { PlanEvent } from "../village/plan";
 
-/** What a notification sounds like. "system" is the phone's own notification sound; "clash" is the game's upgrade sound. */
+/** What a notification sounds like. "system" is the phone's own notification sound; "clash" is the game's own sound for what finished. */
 export type Sound = "system" | "clash" | "silent";
 export const SOUNDS: readonly Sound[] = ["system", "clash", "silent"];
 
@@ -60,15 +60,3 @@ export function kindOf(event: Pick<PlanEvent, "kind" | "lane">): KindId | null {
   if (event.kind === "helperReady") return event.lane === "lab" ? "helperLab" : "helperBuilder";
   return null;
 }
-
-/** What is stored: a default sound for everything, and the kinds that chose their own. */
-export interface SoundChoices {
-  notifySound: Sound;
-  notifySounds: Partial<Record<KindId, Sound>>;
-}
-
-export const soundFor = (choices: SoundChoices, kind: KindId): Sound =>
-  choices.notifySounds[kind] ?? choices.notifySound;
-
-/** The game sound that stands for a kind when one has to be played without a real upgrade (a preview, a test). */
-export const cueFor = (kind: KindId): Cue => (kind === "lab" || kind === "pet" ? "lab" : "building");

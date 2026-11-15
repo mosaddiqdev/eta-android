@@ -7,7 +7,7 @@ import { buildPlan } from "../village/plan";
 import { emptyScenario } from "../village/scenario";
 import { type Alert, alertId, composeAlerts, isQuiet, type Village, type Wanted } from "./compose";
 
-const all: Wanted = { off: [], notifySound: "system", notifySounds: {}, quiet: null };
+const all: Wanted = { off: [], sound: "system", quiet: null };
 
 function village(data: unknown): Village {
   const { account, warnings } = parseExport(data, snapshotCatalog);
@@ -92,13 +92,9 @@ describe("composeAlerts", () => {
     );
   });
 
-  it("gives each kind its own sound, falling back to the default", () => {
-    const sounds = alertsOf(first, {
-      ...all,
-      notifySound: "clash",
-      notifySounds: { helperBuilder: "silent" },
-    });
-    for (const a of sounds) expect(a.sound).toBe(a.kind === "helperBuilder" ? "silent" : "clash");
+  it("gives every alert the chosen sound", () => {
+    expect(alertsOf(first, { ...all, sound: "clash" }).every((a) => a.sound === "clash")).toBe(true);
+    expect(alertsOf(first, { ...all, sound: "silent" }).every((a) => a.sound === "silent")).toBe(true);
   });
 
   it("skips what is already over", () => {
@@ -126,9 +122,9 @@ describe("composeAlerts", () => {
 
   it("plays nothing inside quiet hours, whatever the kind chose", () => {
     const window = { from: 0, to: 1 };
-    const some = alertsOf(first, { ...all, notifySound: "clash", quiet: window });
+    const some = alertsOf(first, { ...all, sound: "clash", quiet: window });
     for (const a of some) expect(a.sound).toBe(isQuiet(a.at, window) ? "silent" : "clash");
-    const never = alertsOf(first, { ...all, notifySound: "clash", quiet: { from: 5, to: 5 } });
+    const never = alertsOf(first, { ...all, sound: "clash", quiet: { from: 5, to: 5 } });
     expect(never.every((a) => a.sound === "clash")).toBe(true);
   });
 });

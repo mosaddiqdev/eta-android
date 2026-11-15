@@ -10,7 +10,6 @@ export function usePlannedAlerts() {
   const shape = JSON.stringify([
     settings.notifyOff,
     settings.notifySound,
-    settings.notifySounds,
     settings.quietHours,
     settings.quietFrom,
     settings.quietTo,

@@ -24,15 +24,7 @@ export function startApp() {
   watchSettings((next, previous) => {
     if (next.theme !== previous.theme) applyNativeTheme(next.theme);
     // Everything the notifications are made from. Theme, clock and the rest don't change them.
-    const fields = [
-      "notify",
-      "notifyOff",
-      "notifySound",
-      "notifySounds",
-      "quietHours",
-      "quietFrom",
-      "quietTo",
-    ] as const;
+    const fields = ["notify", "notifyOff", "notifySound", "quietHours", "quietFrom", "quietTo"] as const;
     const changed = fields.some((field) => JSON.stringify(next[field]) !== JSON.stringify(previous[field]));
     if (changed) syncNotifications();
   });

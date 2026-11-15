@@ -5,11 +5,11 @@ import { Collapse } from "../Collapse";
 import { Group } from "../SettingsGroup";
 import settings from "../SettingsSheet.module.css";
 import { useSheetDialog } from "../useSheetDialog";
-import { AllSound } from "./AllSound";
 import { Hero } from "./Hero";
 import { KindRow } from "./KindRow";
 import styles from "./Notifications.module.css";
 import { QuietHours } from "./QuietHours";
+import { SoundCard } from "./SoundCard";
 import { UpNext } from "./UpNext";
 import { useNotificationStatus } from "./useNotificationStatus";
 import { usePlannedAlerts } from "./usePlannedAlerts";
@@ -23,7 +23,7 @@ interface Props {
 
 /**
  * Everything about notifications on one sheet, reached from Settings. Top to bottom: whether they work, what is lined
- * up next, the sound for all alerts, which kinds are on and each one's own sound, then quiet hours. The body only exists while
+ * up next, which kinds are on, the sound, then quiet hours. The body only exists while
  * the sheet is open, like Settings, so what it reads is fresh each time.
  */
 export function NotificationsSheet({ open, onClose, onBack }: Props) {
@@ -64,14 +64,14 @@ function Body({ onBack }: { onBack: () => void }) {
       <Collapse open={active} className={styles.rest}>
         <div className={styles.restBody}>
           <UpNext alerts={alerts} />
-          <AllSound hasClash={hasClash} />
           {KIND_GROUPS.map((group) => (
             <Group key={group.title} title={group.title}>
               {group.kinds.map((kind) => (
-                <KindRow key={kind.id} kind={kind} hasClash={hasClash} />
+                <KindRow key={kind.id} kind={kind} />
               ))}
             </Group>
           ))}
+          <SoundCard hasClash={hasClash} />
           <QuietHours />
           <p className={settings.note}>
             Times come from your last import. Paste a fresh export after you use a potion or start an upgrade,

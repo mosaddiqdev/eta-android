@@ -114,10 +114,10 @@ portrait, and the upgrade it would save the most time on), and the Clock Tower i
   `EtaBootReceiver` sets them again from the saved list and still shows anything that came due in the last two hours.
 - Three channels, one per sound: the phone's own, the game's upgrade sound, and none (also used for quiet hours).
   Android fixes a channel's sound when it is created and recreating one wipes what the person changed, so channels are
-  per sound and made once, and which kinds are on and which sound each uses is the app's own setting
+  per sound and made once, and which kinds are on and the one sound for all of them are the app's own settings
   (`src/notifications/kinds.ts`, the Notifications sheet in Settings). The first build's per-kind channels are deleted.
-- The game's sounds: `scripts/android/sounds/` holds `clash_building`, `clash_hero` and `clash_lab` (.ogg here, trimmed
-  and evened out in loudness). They become `res/raw/`, and "Clash" in Settings plays the one that fits: a hero
+- The game's sounds: `scripts/android/sounds/` holds `clash_building`, `clash_hero` and `clash_lab` (.ogg, trimmed of dead air, with a
+  fade-out, and all at -15 LUFS with peaks under -3 dB). They become `res/raw/`, and "Clash" in Settings plays the one that fits: a hero
   finishing, research or a pet (lab), or a building. The Helper and Clock Tower alerts use the building sound until
   they have one of their own. Each has its own channel, made once. A sound that is missing falls back to the phone's.
 - Permissions: `POST_NOTIFICATIONS` is asked at run time on Android 13 and up. `SCHEDULE_EXACT_ALARM` is granted by the

@@ -19,23 +19,18 @@ describe("parseSettings", () => {
     expect(DEFAULT_SETTINGS).toMatchObject({
       notify: false,
       notifyOff: [],
-      notifySound: "system",
+      notifySound: "clash",
       quietHours: false,
     });
     expect(parseSettings({ notify: "yes" }).notify).toBe(false);
   });
 
-  it("keeps only the kinds and sounds it knows", () => {
-    const read = parseSettings({
-      notifyOff: ["tower", "potion", 7],
-      notifySound: "clash",
-      notifySounds: { lab: "silent", tower: "loud", potion: "clash" },
-    });
+  it("keeps only the kinds and the sound it knows", () => {
+    const read = parseSettings({ notifyOff: ["tower", "potion", 7], notifySound: "silent" });
     expect(read.notifyOff).toEqual(["tower"]);
-    expect(read.notifySound).toBe("clash");
-    expect(read.notifySounds).toEqual({ lab: "silent" });
+    expect(read.notifySound).toBe("silent");
     expect(parseSettings({ notifySound: "loud", notifyOff: "tower" })).toMatchObject({
-      notifySound: "system",
+      notifySound: "clash",
       notifyOff: [],
     });
   });

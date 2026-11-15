@@ -3,7 +3,7 @@ import { artKey, imageUrl } from "../game/images";
 import type { Plan } from "../village/plan";
 import { helperOptions } from "../village/potion";
 import type { Account, Lane } from "../village/types";
-import { type Cue, type KindId, kindOf, type Sound, type SoundChoices, soundFor } from "./kinds";
+import { type Cue, type KindId, kindOf, type Sound } from "./kinds";
 
 /** What the phone is asked to show: the words, the picture and the moment. Matches EtaNotifier.java. */
 export interface Alert {
@@ -32,7 +32,9 @@ export interface Village {
   plan: Plan;
 }
 
-export interface Wanted extends SoundChoices {
+export interface Wanted {
+  /** What every alert plays. */
+  sound: Sound;
   /** Kinds switched off. */
   off: readonly KindId[];
   quiet: QuietHours | null;
@@ -157,7 +159,7 @@ export function composeAlerts(villages: Village[], wanted: Wanted, now: number):
         at,
         kind,
         ...words,
-        sound: wanted.quiet && isQuiet(at, wanted.quiet) ? "silent" : soundFor(wanted, kind),
+        sound: wanted.quiet && isQuiet(at, wanted.quiet) ? "silent" : wanted.sound,
       });
     }
   }

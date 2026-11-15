@@ -34,8 +34,7 @@ export async function plannedAlerts(): Promise<Alert[]> {
     await villages(),
     {
       off: settings.notifyOff,
-      notifySound: settings.notifySound,
-      notifySounds: settings.notifySounds,
+      sound: settings.notifySound,
       quiet: settings.quietHours ? { from: settings.quietFrom, to: settings.quietTo } : null,
     },
     Date.now(),
