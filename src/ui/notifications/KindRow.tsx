@@ -14,17 +14,15 @@ import { KIND_ART } from "./kindArt";
 import styles from "./Notifications.module.css";
 import { SOUND_LABEL, soundOptions } from "./soundChoices";
 
-type Choice = Sound | "default";
-
 /**
- * One kind of notification: its switch, and when it is on, the sound it plays. "Default" follows the sound chosen for
- * everything, so changing that later still reaches the kinds that never picked their own. Picking a sound plays it.
+ * One kind of notification: its switch, and when it is on, the sound it plays. A kind only keeps a choice of its own when
+ * it differs from the sound chosen for all alerts, so changing that one later still reaches the kinds that match it.
+ * Picking a sound plays it.
  */
 export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
   const current = useSettings();
   const [open, setOpen] = useState(false);
   const on = !current.notifyOff.includes(kind.id);
-  const own = current.notifySounds[kind.id];
   const effective = soundFor(current, kind.id);
 
   const toggle = (next: boolean) =>
@@ -32,10 +30,10 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
       notifyOff: next ? current.notifyOff.filter((id) => id !== kind.id) : [...current.notifyOff, kind.id],
     });
 
-  const choose = (choice: Choice) => {
+  const choose = (sound: Sound) => {
     const { [kind.id]: _dropped, ...rest } = current.notifySounds;
-    updateSettings({ notifySounds: choice === "default" ? rest : { ...rest, [kind.id]: choice } });
-    void EtaNotifications.preview({ sound: choice === "default" ? current.notifySound : choice });
+    updateSettings({ notifySounds: sound === current.notifySound ? rest : { ...rest, [kind.id]: sound } });
+    void EtaNotifications.preview({ sound });
   };
 
   // A real notification through the same path as the others, so the picture, the channel and the sound are all tested.
@@ -54,11 +52,6 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
     });
   };
 
-  const options: { value: Choice; label: string; hint?: string; disabled?: boolean }[] = [
-    { value: "default", label: "Default" },
-    ...soundOptions(hasClash),
-  ];
-
   return (
     <div className={styles.kind}>
       <div className={styles.kindTop}>
@@ -73,7 +66,7 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
           onClick={() => setOpen(!open)}
         >
           <span>
-            Sound <b>{own ? SOUND_LABEL[own] : `Default (${SOUND_LABEL[current.notifySound]})`}</b>
+            Sound <b>{SOUND_LABEL[effective]}</b>
           </span>
           <ChevronDown size={18} aria-hidden="true" data-open={open} />
         </button>
@@ -81,8 +74,8 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
           <div className={styles.soundPanel}>
             <Segmented
               label={`${kind.title} sound`}
-              value={own ?? "default"}
-              options={options}
+              value={effective}
+              options={soundOptions(hasClash)}
               onChange={choose}
             />
             <button type="button" className={settings.quiet} onClick={sendTest}>

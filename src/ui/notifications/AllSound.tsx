@@ -5,22 +5,23 @@ import { Segmented } from "../SettingsSegmented";
 import settings from "../SettingsSheet.module.css";
 import { soundOptions } from "./soundChoices";
 
-/** The sound for every kind that hasn't picked its own. */
-export function DefaultSound({ hasClash }: { hasClash: boolean }) {
+/** One choice for every kind at once. A kind can still pick differently below, and this puts them all back in line. */
+export function AllSound({ hasClash }: { hasClash: boolean }) {
   const { notifySound } = useSettings();
   return (
-    <Group title="Default sound">
+    <Group title="Sound for all alerts">
       <Segmented
-        label="Default sound"
+        label="Sound for all alerts"
         value={notifySound}
         options={soundOptions(hasClash)}
         onChange={(sound) => {
-          updateSettings({ notifySound: sound });
+          updateSettings({ notifySound: sound, notifySounds: {} });
           void EtaNotifications.preview({ sound });
         }}
       />
       <p className={settings.note}>
-        Phone is your notification sound from Android's settings. Each kind above can pick its own.
+        Phone is the notification sound from Android's settings. This sets every kind below; each can then
+        pick its own.
       </p>
     </Group>
   );
