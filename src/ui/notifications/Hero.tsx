@@ -1,4 +1,4 @@
-import { Check, TriangleAlert } from "lucide-react";
+import { Check, Info, TriangleAlert } from "lucide-react";
 import { EtaNotifications, type NotificationStatus } from "../../native/notifications";
 import { updateSettings, useSettings } from "../../settings/settings";
 import { Collapse } from "../Collapse";
@@ -67,8 +67,9 @@ export function Hero({ status, onStatus, coming }: Props) {
             <Good title="Battery is not limiting it" detail="Alerts can arrive while the phone sleeps." />
           ) : (
             <Problem
-              title="Battery saver may stop alerts"
-              detail="Some phones drop alarms for apps they think are idle. Choose No restrictions."
+              tip
+              title="If alerts ever don't arrive"
+              detail="Some phones stop apps they think are idle. Set ClashETA's battery use to No restrictions."
               action="Open battery settings"
               onAction={() => void EtaNotifications.openBatterySettings()}
             />
@@ -96,7 +97,9 @@ function Problem({
   detail,
   action,
   onAction,
+  tip,
 }: {
+  tip?: boolean;
   title: string;
   detail: string;
   action: string;
@@ -104,7 +107,11 @@ function Problem({
 }) {
   return (
     <div className={styles.healthRow}>
-      <TriangleAlert size={18} className={styles.warn} aria-hidden="true" />
+      {tip ? (
+        <Info size={18} className={styles.tip} aria-hidden="true" />
+      ) : (
+        <TriangleAlert size={18} className={styles.warn} aria-hidden="true" />
+      )}
       <span>
         <b>{title}</b>
         <small>{detail}</small>

@@ -3,6 +3,7 @@ import { type Alert, composeAlerts, type Village } from "../notifications/compos
 import { getSettings } from "../settings/settings";
 import { parseExport } from "../village/parse";
 import { buildPlan } from "../village/plan";
+import { emptyScenario } from "../village/scenario";
 import { canNotify, EtaNotifications } from "./notifications";
 
 // Runs one at a time, newest last, so an import and a settings change close together can't leave the older list armed.
@@ -16,10 +17,7 @@ async function villages(): Promise<Village[]> {
   for (const saved of readVillages().villages) {
     try {
       const { account, warnings } = parseExport(saved.raw, gameCatalog);
-      found.push({
-        account,
-        plan: buildPlan(account, warnings, { now, potions: [], helpers: [], clockTower: null }),
-      });
+      found.push({ account, plan: buildPlan(account, warnings, emptyScenario(now)) });
     } catch {
       // A saved village that no longer reads is dropped by the village page; it just gets no notifications here.
     }
@@ -54,15 +52,27 @@ export function syncNotifications() {
   if (!canNotify()) return;
   clearTimeout(waiting);
   waiting = setTimeout(() => {
-    queue = queue.then(sync).catch(() => {});
+    queue = queue
+      .then(sync)
+      .then(markLaunched)
+      .catch(() => {});
   }, 500);
+}
+
+const LAUNCHED = "clasheta.notified";
+
+// Set once a sync has really run, not when one is asked for: the first page can be the home page, which sends the
+// visitor on within moments, and a sync that never ran there must still run on the page they land on.
+function markLaunched() {
+  try {
+    sessionStorage.setItem(LAUNCHED, "1");
+  } catch {}
 }
 
 /** Once per app start. The pages are separate files, so the flag has to outlive a page change but not the app. */
 export function syncNotificationsOnLaunch() {
   try {
-    if (sessionStorage.getItem("clasheta.notified")) return;
-    sessionStorage.setItem("clasheta.notified", "1");
+    if (sessionStorage.getItem(LAUNCHED)) return;
   } catch {}
   syncNotifications();
 }

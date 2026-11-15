@@ -80,7 +80,8 @@ public class EtaNotificationsPlugin extends Plugin {
 
     @PluginMethod
     public void test(PluginCall call) {
-        EtaNotifier.post(getContext(), call.getObject("item"));
+        JSObject item = call.getObject("item");
+        if (item != null) EtaNotifier.post(getContext(), item);
         call.resolve(new JSObject());
     }
 

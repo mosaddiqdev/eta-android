@@ -178,12 +178,24 @@ async function notifications({ dir, pkg }) {
   };
   // Permission to show notifications is asked at run time on Android 13 and up. Exact alarms are granted by the person in
   // the phone's settings; without them the alarms still go off, up to a few minutes late.
-  for (const name of ["POST_NOTIFICATIONS", "SCHEDULE_EXACT_ALARM", "RECEIVE_BOOT_COMPLETED"])
+  for (const name of ["POST_NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED"])
     add(
       `android.permission.${name}"`,
       `<uses-permission android:name="android.permission.${name}" />`,
       "</manifest>",
     );
+  // Exact alarms: Android 13 and newer grant USE_EXACT_ALARM with the install, older ones need the person to allow
+  // SCHEDULE_EXACT_ALARM. Google Play only lets alarm and calendar apps declare the first (docs/android.md).
+  add(
+    'android.permission.SCHEDULE_EXACT_ALARM"',
+    '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />',
+    "</manifest>",
+  );
+  add(
+    'android.permission.USE_EXACT_ALARM"',
+    '<uses-permission android:name="android.permission.USE_EXACT_ALARM" />',
+    "</manifest>",
+  );
   add(
     ".EtaAlarmReceiver",
     '<receiver android:name=".EtaAlarmReceiver" android:exported="false" />',
@@ -196,6 +208,7 @@ async function notifications({ dir, pkg }) {
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>`,
     "</application>",

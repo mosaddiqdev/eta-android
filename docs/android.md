@@ -120,9 +120,11 @@ portrait, and the upgrade it would save the most time on), and the Clock Tower i
   fade-out, and all at -15 LUFS with peaks under -3 dB). They become `res/raw/`, and "Clash" in Settings plays the one that fits: a hero
   finishing, research or a pet (lab), or a building. The Helper and Clock Tower alerts use the building sound until
   they have one of their own. Each has its own channel, made once. A sound that is missing falls back to the phone's.
-- Permissions: `POST_NOTIFICATIONS` is asked at run time on Android 13 and up. `SCHEDULE_EXACT_ALARM` is granted by the
-  person in the phone's settings (Settings links there); without it notifications can come a few minutes late. It is
-  not a Play-friendly permission for this kind of app, so a Play release should rethink it.
+- Permissions: `POST_NOTIFICATIONS` is asked at run time on Android 13 and up. Exact alarms use `USE_EXACT_ALARM` on
+  Android 13 and newer (granted with the install) and `SCHEDULE_EXACT_ALARM` before that (the person allows it in
+  the phone's settings, which Settings links to). Without exact alarms the notifications can come a few minutes late.
+  Google Play only lets alarm and calendar apps declare `USE_EXACT_ALARM`, so a Play release should rethink it.
+  `EtaBootReceiver` also sets the alarms again when the exact alarm permission changes.
 - Times come from the last import. A potion used after it isn't known, so paste again to bring them back in line.
 - Not checked on a device: Doze timing, the boot receiver, and how the large icon looks on each maker's skin.
 
