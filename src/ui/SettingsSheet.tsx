@@ -1,12 +1,17 @@
 import { ChevronRight, Monitor, Moon, Sun, Trash2, X } from "lucide-react";
-import { type ReactNode, useId, useState } from "react";
+import { useState } from "react";
 import { formatTime } from "../features/finish/format";
 import { noVillages, readVillages, writeVillages } from "../features/village/villages";
+import { canNotify } from "../native/notifications";
+import { KIND_IDS } from "../notifications/kinds";
 import { type Clock, type StartOn, type Theme, updateSettings, useSettings } from "../settings/settings";
 import { gameDataSummary } from "./about/gameDataAge";
 import { Collapse } from "./Collapse";
-import { canVibrate, confirm, tick } from "./haptics";
+import { canVibrate, confirm } from "./haptics";
+import { Group } from "./SettingsGroup";
+import { type Option, Segmented } from "./SettingsSegmented";
 import styles from "./SettingsSheet.module.css";
+import { Switch } from "./SettingsSwitch";
 import { useSheetDialog } from "./useSheetDialog";
 
 interface Props {
@@ -14,6 +19,8 @@ interface Props {
   onClose: () => void;
   /** Opens the credits in the About sheet. */
   onCredits: () => void;
+  /** Opens the Notifications sheet. Only offered inside the Android app. */
+  onNotifications: () => void;
 }
 
 /**
@@ -25,7 +32,7 @@ interface Props {
  * My village, touch), then what the app keeps (saved data), and About last. Touch only shows where the device can
  * buzz.
  */
-export function SettingsSheet({ open, onClose, onCredits }: Props) {
+export function SettingsSheet({ open, onClose, onCredits, onNotifications }: Props) {
   const sheet = useSheetDialog(open);
 
   return (
@@ -38,12 +45,22 @@ export function SettingsSheet({ open, onClose, onCredits }: Props) {
       onClose={onClose}
       onClick={(event) => event.target === event.currentTarget && sheet.close()}
     >
-      {sheet.mounted && <Body onClose={sheet.close} onCredits={onCredits} />}
+      {sheet.mounted && (
+        <Body onClose={sheet.close} onCredits={onCredits} onNotifications={onNotifications} />
+      )}
     </dialog>
   );
 }
 
-function Body({ onClose, onCredits }: { onClose: () => void; onCredits: () => void }) {
+function Body({
+  onClose,
+  onCredits,
+  onNotifications,
+}: {
+  onClose: () => void;
+  onCredits: () => void;
+  onNotifications: () => void;
+}) {
   const settings = useSettings();
   const [now] = useState(() => new Date());
 
@@ -123,6 +140,12 @@ function Body({ onClose, onCredits }: { onClose: () => void; onCredits: () => vo
         </Group>
       )}
 
+      {canNotify() && (
+        <Group title="Notifications">
+          <Notifications onOpen={onNotifications} />
+        </Group>
+      )}
+
       <Group title="Saved data">
         <SavedData />
       </Group>
@@ -139,107 +162,6 @@ const START_NOTE: Record<StartOn, string> = {
   finish: "Always opens Finish time, even with a saved village.",
   village: "Always opens My village. Until you import one, that is the import screen.",
 };
-
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className={styles.group}>
-      <h3>{title}</h3>
-      <div className={styles.card}>{children}</div>
-    </section>
-  );
-}
-
-interface Option<T extends string> {
-  value: T;
-  label: string;
-  hint?: string;
-  icon?: ReactNode;
-}
-
-/** Radio buttons drawn as one pill with a lit side. Real radios, so arrow keys and screen readers just work. */
-function Segmented<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: Option<T>[];
-  onChange: (value: T) => void;
-}) {
-  const name = useId();
-  return (
-    <fieldset
-      className={styles.segmented}
-      style={
-        {
-          "--n": options.length,
-          "--i": Math.max(
-            0,
-            options.findIndex((o) => o.value === value),
-          ),
-        } as React.CSSProperties
-      }
-    >
-      <legend className="sr-only">{label}</legend>
-      {options.map((option) => (
-        <label key={option.value}>
-          <input
-            type="radio"
-            name={name}
-            value={option.value}
-            checked={value === option.value}
-            onChange={() => {
-              onChange(option.value);
-              tick();
-            }}
-          />
-          <span>
-            {option.icon}
-            <b>{option.label}</b>
-            {option.hint && <small>{option.hint}</small>}
-          </span>
-        </label>
-      ))}
-    </fieldset>
-  );
-}
-
-function Switch({
-  label,
-  hint,
-  checked,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  const id = useId();
-  return (
-    <div className={styles.switchRow}>
-      <span className={styles.switchText}>
-        <span id={id}>{label}</span>
-        <small>{hint}</small>
-      </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={id}
-        className={styles.switch}
-        onClick={() => {
-          onChange(!checked);
-          confirm();
-        }}
-      >
-        <span aria-hidden="true" />
-      </button>
-    </div>
-  );
-}
 
 /** Saved villages live only on this phone. Forgetting them all is one confirmed tap, and the page reloads empty. */
 function SavedData() {
@@ -305,6 +227,21 @@ function Credits({ onOpen }: { onOpen: () => void }) {
       <span className={styles.switchText}>
         <span>Credits</span>
         <small>{gameDataSummary(now)}</small>
+      </span>
+      <ChevronRight size={18} aria-hidden="true" />
+    </button>
+  );
+}
+
+/** The way into the Notifications sheet. Its words say where things stand, so the row is useful before it is opened. */
+function Notifications({ onOpen }: { onOpen: () => void }) {
+  const { notify, notifyOff } = useSettings();
+  const on = KIND_IDS.length - notifyOff.length;
+  return (
+    <button type="button" className={styles.navRow} onClick={onOpen}>
+      <span className={styles.switchText}>
+        <span>Notifications</span>
+        <small>{notify ? `On, ${on} of ${KIND_IDS.length} kinds` : "Off"}</small>
       </span>
       <ChevronRight size={18} aria-hidden="true" />
     </button>

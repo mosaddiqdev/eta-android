@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { paintSystemBars } from "../native/systemBars";
+import { KIND_IDS, type KindId, SOUNDS, type Sound } from "../notifications/kinds";
 
 export type Theme = "auto" | "dark" | "light";
 export type Clock = "auto" | "12" | "24";
@@ -15,6 +16,17 @@ export interface Settings {
   hideFinished: boolean;
   /** A tiny buzz on taps of steppers, switches and tabs, on phones that can. */
   haptics: boolean;
+  /** Android only: tell me when an upgrade finishes. The other notify switches only matter while this is on. */
+  notify: boolean;
+  /** The kinds switched off (src/notifications/kinds.ts). Not "the kinds switched on", so a kind added later starts on. */
+  notifyOff: KindId[];
+  /** What every notification plays. "clash" picks the game's sound that fits each one. */
+  notifySound: Sound;
+  /** Notifications that arrive between `quietFrom` and `quietTo` come without sound. */
+  quietHours: boolean;
+  /** Minutes after midnight, on the phone's clock. The window may run past midnight (22:00 to 07:00). */
+  quietFrom: number;
+  quietTo: number;
 }
 
 // pages/index.astro reads this key and `startOn` in the page head before first paint, so keep the names in step.
@@ -25,11 +37,20 @@ export const DEFAULT_SETTINGS: Settings = {
   startOn: "auto",
   hideFinished: false,
   haptics: true,
+  notify: false,
+  notifyOff: [],
+  notifySound: "clash",
+  quietHours: false,
+  quietFrom: 22 * 60,
+  quietTo: 7 * 60,
 };
 
 const THEMES: readonly Theme[] = ["auto", "dark", "light"];
 const CLOCKS: readonly Clock[] = ["auto", "12", "24"];
 const STARTS: readonly StartOn[] = ["auto", "finish", "village"];
+
+const minuteOfDay = (value: unknown, fallback: number) =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 && value < 24 * 60 ? value : fallback;
 
 /** Reads whatever was stored. Old, edited or half-written values fall back one field at a time, never all at once. */
 export function parseSettings(raw: unknown): Settings {
@@ -41,6 +62,12 @@ export function parseSettings(raw: unknown): Settings {
     hideFinished: value.hideFinished === true,
     // On unless it was turned off, so an old saved value without the field keeps the default.
     haptics: value.haptics !== false,
+    notify: value.notify === true,
+    notifyOff: KIND_IDS.filter((id) => Array.isArray(value.notifyOff) && value.notifyOff.includes(id)),
+    notifySound: SOUNDS.find((sound) => sound === value.notifySound) ?? DEFAULT_SETTINGS.notifySound,
+    quietHours: value.quietHours === true,
+    quietFrom: minuteOfDay(value.quietFrom, DEFAULT_SETTINGS.quietFrom),
+    quietTo: minuteOfDay(value.quietTo, DEFAULT_SETTINGS.quietTo),
   };
 }
 
@@ -109,6 +136,18 @@ export function updateSettings(patch: Partial<Settings>) {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
   } catch {}
   publish(next);
+}
+
+/** Calls `listener` with the new settings after every change. Returns the way to stop. */
+export function watchSettings(listener: (next: Settings, previous: Settings) => void) {
+  let previous = current;
+  const call = () => {
+    const next = current;
+    listener(next, previous);
+    previous = next;
+  };
+  listeners.add(call);
+  return () => void listeners.delete(call);
 }
 
 function subscribe(listener: () => void) {

@@ -1,8 +1,11 @@
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
-import { getSettings } from "../settings/settings";
+import { VILLAGES_CHANGED } from "../features/village/villages";
+import { getSettings, watchSettings } from "../settings/settings";
 import { showInsetsDebug } from "./debug";
 import { releaseLaunchSplash } from "./launchSplash";
+import { applyNativeTheme } from "./nativeTheme";
+import { syncNotifications, syncNotificationsOnLaunch } from "./notificationSync";
 import { paintSystemBars } from "./systemBars";
 
 /**
@@ -13,7 +16,18 @@ import { paintSystemBars } from "./systemBars";
 export function startApp() {
   if (!Capacitor.isNativePlatform()) return;
   paintSystemBars(getSettings().theme);
-  void releaseLaunchSplash();
+  applyNativeTheme(getSettings().theme);
+  // The alarms outlive the app but not a restart or an update, and the saved villages can change while it is closed, so
+  // every start sets them again once the page is up.
+  void releaseLaunchSplash().then(syncNotificationsOnLaunch);
+  window.addEventListener(VILLAGES_CHANGED, syncNotifications);
+  watchSettings((next, previous) => {
+    if (next.theme !== previous.theme) applyNativeTheme(next.theme);
+    // Everything the notifications are made from. Theme, clock and the rest don't change them.
+    const fields = ["notify", "notifyOff", "notifySound", "quietHours", "quietFrom", "quietTo"] as const;
+    const changed = fields.some((field) => JSON.stringify(next[field]) !== JSON.stringify(previous[field]));
+    if (changed) syncNotifications();
+  });
   if (import.meta.env.PUBLIC_DEBUG_INSETS === "1") showInsetsDebug();
 
   void App.addListener("backButton", ({ canGoBack }) => {

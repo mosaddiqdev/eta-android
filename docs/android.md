@@ -92,6 +92,42 @@ One limit: the system draws the splash before the app runs, so it follows the ph
 
 To change it: motion, distances and colours are in `scripts/android-splash.mjs`; the hold, the fade and the 3 second limit are at the top of `MainActivity` in `scripts/android-project.mjs`.
 
+## The splash follows the theme
+
+The launch splash is drawn by Android before any page runs, so it can't read the app's setting from the page. The page
+tells Android instead (`src/native/nativeTheme.ts`, `EtaThemePlugin.java`): the choice is kept in the app's own
+preferences and `MainActivity` applies it before the splash is built. On Android 12 and newer that is
+`UiModeManager.setApplicationNightMode`, which Android remembers for the app; before that it is
+`AppCompatDelegate.setDefaultNightMode`, and the splash there is the system's own window background, which a forced
+theme can't change. Unchecked on a device: that the 12+ splash is in the forced theme on the very next cold start.
+
+## Notifications
+
+The page works out what to say, the phone shows it. `src/notifications/compose.ts` turns the plan's events into
+notifications: an upgrade finished (the building at its new level, or the hero or pet), a helper is free (the helper's
+portrait, and the upgrade it would save the most time on), and the Clock Tower is ready. Each has a picture from
+`public/game` in the app's assets, which `EtaNotifier.java` decodes and centres on a square for the large icon.
+- `src/native/notificationSync.ts` sends the whole list to Android at app start, when the saved villages change and when
+  a notification setting changes. Each time it replaces the list, so there are never two alarms for one thing.
+- `EtaNotifier.java` keeps the list and sets one `AlarmManager` alarm for each (`setExactAndAllowWhileIdle` when
+  exact alarms are allowed, `setAndAllowWhileIdle` otherwise). Restarting the phone or updating the app clears alarms, so
+  `EtaBootReceiver` sets them again from the saved list and still shows anything that came due in the last two hours.
+- Three channels, one per sound: the phone's own, the game's upgrade sound, and none (also used for quiet hours).
+  Android fixes a channel's sound when it is created and recreating one wipes what the person changed, so channels are
+  per sound and made once, and which kinds are on and the one sound for all of them are the app's own settings
+  (`src/notifications/kinds.ts`, the Notifications sheet in Settings). The first build's per-kind channels are deleted.
+- The game's sounds: `scripts/android/sounds/` holds `clash_building`, `clash_hero` and `clash_lab` (.ogg, trimmed of dead air, with a
+  fade-out, and all at -15 LUFS with peaks under -3 dB). They become `res/raw/`, and "Clash" in Settings plays the one that fits: a hero
+  finishing, research or a pet (lab), or a building. The Helper and Clock Tower alerts use the building sound until
+  they have one of their own. Each has its own channel, made once. A sound that is missing falls back to the phone's.
+- Permissions: `POST_NOTIFICATIONS` is asked at run time on Android 13 and up. Exact alarms use `USE_EXACT_ALARM` on
+  Android 13 and newer (granted with the install) and `SCHEDULE_EXACT_ALARM` before that (the person allows it in
+  the phone's settings, which Settings links to). Without exact alarms the notifications can come a few minutes late.
+  Google Play only lets alarm and calendar apps declare `USE_EXACT_ALARM`, so a Play release should rethink it.
+  `EtaBootReceiver` also sets the alarms again when the exact alarm permission changes.
+- Times come from the last import. A potion used after it isn't known, so paste again to bring them back in line.
+- Not checked on a device: Doze timing, the boot receiver, and how the large icon looks on each maker's skin.
+
 ## The status bar
 
 A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.

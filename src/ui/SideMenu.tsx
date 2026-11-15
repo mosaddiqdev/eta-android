@@ -2,6 +2,7 @@ import { ChevronRight, Menu, X } from "lucide-react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { FOOT_ITEMS, isCurrent, MAIN_ITEMS, type MenuItem } from "../layouts/menu";
 import { AboutSheet, type AboutTab } from "./AboutSheet";
+import { NotificationsSheet } from "./notifications/NotificationsSheet";
 import { SettingsSheet } from "./SettingsSheet";
 import styles from "./SideMenu.module.css";
 
@@ -17,6 +18,7 @@ export default function SideMenu({ currentPath }: { currentPath: string }) {
   const panel = useRef<HTMLDivElement>(null);
   const timer = useRef<number>(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [about, setAbout] = useState<{ open: boolean; tab: AboutTab }>({ open: false, tab: "story" });
   const openAbout = (tab: AboutTab = "story") => setAbout({ open: true, tab });
 
@@ -139,6 +141,18 @@ export default function SideMenu({ currentPath }: { currentPath: string }) {
         onCredits={() => {
           setSettingsOpen(false);
           openAbout("credits");
+        }}
+        onNotifications={() => {
+          setSettingsOpen(false);
+          setNotificationsOpen(true);
+        }}
+      />
+      <NotificationsSheet
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onBack={() => {
+          setNotificationsOpen(false);
+          setSettingsOpen(true);
         }}
       />
       <AboutSheet
