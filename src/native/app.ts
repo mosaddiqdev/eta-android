@@ -1,6 +1,6 @@
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
-import { VILLAGES_CHANGED } from "../features/village/villages";
+import { VILLAGES_CHANGED, VILLAGES_KEY } from "../features/village/villages";
 import { getSettings, watchSettings } from "../settings/settings";
 import { watchClipboardImport } from "./clipboardImport";
 import { showInsetsDebug } from "./debug";
@@ -8,6 +8,28 @@ import { releaseLaunchSplash } from "./launchSplash";
 import { applyNativeTheme } from "./nativeTheme";
 import { syncNotifications, syncNotificationsOnLaunch } from "./notificationSync";
 import { paintSystemBars } from "./systemBars";
+
+/**
+ * The tile imports in a screen of its own (native/quickImport.ts), so a page that was left open in the background has
+ * not seen the new village. When the app comes back and the saved villages are not the ones this page last wrote or
+ * read, the page starts over from what is saved.
+ */
+function reloadWhenVillagesChanged() {
+  const stored = () => {
+    try {
+      return localStorage.getItem(VILLAGES_KEY);
+    } catch {
+      return null;
+    }
+  };
+  let known = stored();
+  window.addEventListener(VILLAGES_CHANGED, () => {
+    known = stored();
+  });
+  void App.addListener("appStateChange", ({ isActive }) => {
+    if (isActive && stored() !== known) location.reload();
+  });
+}
 
 /**
  * Called once from the shared shell. Inside the app it hands the phone's Back button to the page: an open menu or sheet
@@ -23,6 +45,7 @@ export function startApp() {
   void releaseLaunchSplash().then(syncNotificationsOnLaunch);
   watchClipboardImport();
   window.addEventListener(VILLAGES_CHANGED, syncNotifications);
+  reloadWhenVillagesChanged();
   watchSettings((next, previous) => {
     if (next.theme !== previous.theme) applyNativeTheme(next.theme);
     // Everything the notifications are made from. Theme, clock and the rest don't change them.

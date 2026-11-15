@@ -12,8 +12,8 @@ import {
   readVillages,
   type SavedVillage,
   type SavedVillages,
-  savedVillage,
   type VillageSummary,
+  withVillage,
   writeVillages,
 } from "./villages";
 
@@ -121,11 +121,7 @@ export function useVillages(resetScenario: () => void) {
       const known = villages.some((v) => v.tag === account.tag);
       const savedAt = nowSeconds();
       if (raw) {
-        const entry = savedVillage(account, raw, savedAt);
-        commit({
-          active: account.tag,
-          villages: known ? villages.map((v) => (v.tag === account.tag ? entry : v)) : [...villages, entry],
-        });
+        commit(withVillage(savedRef.current, account, raw, savedAt));
       }
       show(account, warnings, savedAt);
       if (!known) toast(`Added ${account.tag}`);

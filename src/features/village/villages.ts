@@ -1,6 +1,6 @@
 import type { Account } from "../../village/types";
 
-const KEY = "clasheta.villages";
+export const VILLAGES_KEY = "clasheta.villages";
 
 /** Sent on `window` after the saved villages change, so the app can set its notifications to match (native/app.ts). */
 export const VILLAGES_CHANGED = "clasheta:villages";
@@ -28,6 +28,23 @@ export function savedVillage(account: Account, raw: string, savedAt: number): Sa
   return { tag: account.tag, raw, savedAt, townHall: account.townHall, exportedAt: account.exportedAt };
 }
 
+/** `saved` with this village added, or replaced if it was already there, and opened. */
+export function withVillage(
+  saved: SavedVillages,
+  account: Account,
+  raw: string,
+  savedAt: number,
+): SavedVillages {
+  const entry = savedVillage(account, raw, savedAt);
+  const known = saved.villages.some((v) => v.tag === account.tag);
+  return {
+    active: account.tag,
+    villages: known
+      ? saved.villages.map((v) => (v.tag === account.tag ? entry : v))
+      : [...saved.villages, entry],
+  };
+}
+
 function isSavedVillage(value: unknown): value is SavedVillage {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
@@ -44,7 +61,7 @@ function isSavedVillage(value: unknown): value is SavedVillage {
 // A village that isn't remembered is still usable, so none of this is fatal.
 export function readVillages(): SavedVillages {
   try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) ?? "null");
+    const parsed = JSON.parse(localStorage.getItem(VILLAGES_KEY) ?? "null");
     if (!Array.isArray(parsed?.villages)) return noVillages;
     // Keep only entries with the right shape; a hand-edited or half-written one must not reach the parser or the UI.
     const villages = parsed.villages.filter(isSavedVillage);
@@ -57,7 +74,7 @@ export function readVillages(): SavedVillages {
 
 export function writeVillages(saved: SavedVillages) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(saved));
+    localStorage.setItem(VILLAGES_KEY, JSON.stringify(saved));
   } catch {}
   window.dispatchEvent(new Event(VILLAGES_CHANGED));
 }

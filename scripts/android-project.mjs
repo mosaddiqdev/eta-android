@@ -55,7 +55,6 @@ async function mainActivity() {
     file,
     `package ${pkg};
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
@@ -88,9 +87,6 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(EtaSplashPlugin.class);
         registerPlugin(EtaThemePlugin.class);
         registerPlugin(EtaNotificationsPlugin.class);
-        registerPlugin(EtaImportPlugin.class);
-        // Opened from the "Import village" tile? The page asks for this once it is up.
-        EtaImportPlugin.note(getIntent());
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -104,13 +100,6 @@ public class MainActivity extends BridgeActivity {
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
         }
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        // The app was already running when the tile was tapped.
-        EtaImportPlugin.note(intent);
-        super.onNewIntent(intent);
     }
 
     // Fades the splash out and lets it grow a little, over the page underneath. Both run on the render thread, so the
@@ -239,6 +228,14 @@ async function notifications({ dir, pkg }) {
         </receiver>`,
     "</application>",
   );
+  // The tile's see-through screen: its own task, out of the recent apps, with no animation, so nothing shows over the game.
+  add(
+    ".EtaImportActivity",
+    `<activity android:name=".EtaImportActivity" android:theme="@style/EtaImportTheme" android:exported="false"
+            android:taskAffinity="" android:excludeFromRecents="true"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode" />`,
+    "</application>",
+  );
   // The Quick Settings tile. Active mode: the phone doesn't keep the service bound while the panel is closed.
   add(
     ".EtaImportTile",
@@ -252,6 +249,48 @@ async function notifications({ dir, pkg }) {
     "</application>",
   );
   await writeFile(file, manifest);
+
+  // See-through, and no window animation. On Android 12 and newer the launch splash is made empty as well, in case the
+  // phone draws one for this screen.
+  const values = path.join(RES, "values");
+  await writeFile(
+    path.join(values, "eta_import_theme.xml"),
+    `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="EtaImportTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
+`,
+  );
+  const v31 = path.join(RES, "values-v31");
+  await mkdir(v31, { recursive: true });
+  await writeFile(
+    path.join(v31, "eta_import_theme.xml"),
+    `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="EtaImportTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
+    </style>
+</resources>
+`,
+  );
 }
 
 const colorFile = (name, hex) => `<?xml version="1.0" encoding="utf-8"?>

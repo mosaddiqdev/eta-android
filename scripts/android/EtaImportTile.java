@@ -6,10 +6,9 @@ import android.os.Build;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
-// "Import village" in the Quick Settings panel. It does nothing until it is tapped, and the phone starts this service
-// only for those moments, so it costs no battery or memory while the panel is closed. A tap opens the app with
-// EtaImportPlugin.ACTION. The page reads the clipboard (Android allows that only to the app in front), imports, and
-// sends the player back to the game. Docs: docs/android.md
+// "Import village" in the Quick Settings panel. The phone starts this service only while the panel shows the tile, so
+// it costs no battery or memory otherwise. A tap opens EtaImportActivity, a see-through screen over the game that
+// imports what was copied and closes itself. Docs: docs/android.md
 public class EtaImportTile extends TileService {
     @Override
     public void onStartListening() {
@@ -30,9 +29,8 @@ public class EtaImportTile extends TileService {
     }
 
     private void open() {
-        Intent intent = new Intent(this, MainActivity.class)
-            .setAction(EtaImportPlugin.ACTION)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        Intent intent = new Intent(this, EtaImportActivity.class)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
         if (Build.VERSION.SDK_INT >= 34) {
             // Android 14 wants a PendingIntent here; the Intent version is deprecated.
             startActivityAndCollapse(
