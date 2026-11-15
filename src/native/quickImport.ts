@@ -8,15 +8,20 @@ import { syncNotificationsNow } from "./notificationSync";
 // see-through screen over the game: it reads the clipboard, saves the village the way the village page does, sets the
 // alarms, shows a system toast and closes. The player never leaves Clash. Docs: docs/android.md
 
-const EtaImport = registerPlugin<{ toast(o: { text: string }): Promise<void>; finish(): Promise<void> }>(
-  "EtaImport",
-);
+interface EtaImport {
+  clipboard(): Promise<{ text: string }>;
+  toast(options: { text: string }): Promise<void>;
+  finish(): Promise<void>;
+}
+const EtaImport = registerPlugin<EtaImport>("EtaImport");
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
 async function importCopied(): Promise<string> {
-  const text = await readClipboardSoon();
+  // The catalog loads while the clipboard is read. The screen read it natively when it got focus.
+  const catalog = import("../game/catalog");
+  const text = (await EtaImport.clipboard().catch(() => ({ text: "" }))).text || (await readClipboardSoon());
   if (!text) return "Nothing copied yet. Copy your village in Clash first.";
-  const { gameCatalog } = await import("../game/catalog");
+  const { gameCatalog } = await catalog;
   let tag: string;
   try {
     const { account } = parseExport(text, gameCatalog);
