@@ -2,6 +2,7 @@ import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { VILLAGES_CHANGED } from "../features/village/villages";
 import { getSettings, watchSettings } from "../settings/settings";
+import { watchClipboardImport } from "./clipboardImport";
 import { showInsetsDebug } from "./debug";
 import { releaseLaunchSplash } from "./launchSplash";
 import { applyNativeTheme } from "./nativeTheme";
@@ -20,6 +21,7 @@ export function startApp() {
   // The alarms outlive the app but not a restart or an update, and the saved villages can change while it is closed, so
   // every start sets them again once the page is up.
   void releaseLaunchSplash().then(syncNotificationsOnLaunch);
+  watchClipboardImport();
   window.addEventListener(VILLAGES_CHANGED, syncNotifications);
   watchSettings((next, previous) => {
     if (next.theme !== previous.theme) applyNativeTheme(next.theme);

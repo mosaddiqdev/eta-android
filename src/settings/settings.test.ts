@@ -15,6 +15,13 @@ describe("parseSettings", () => {
     });
   });
 
+  it("imports on open unless that was turned off", () => {
+    expect(DEFAULT_SETTINGS.autoImport).toBe(true);
+    expect(parseSettings({}).autoImport).toBe(true);
+    expect(parseSettings({ autoImport: false }).autoImport).toBe(false);
+    expect(parseSettings({ autoImport: "no" }).autoImport).toBe(true);
+  });
+
   it("keeps notifications off until they are turned on, with every kind on", () => {
     expect(DEFAULT_SETTINGS).toMatchObject({
       notify: false,

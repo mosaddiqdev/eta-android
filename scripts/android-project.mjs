@@ -55,6 +55,7 @@ async function mainActivity() {
     file,
     `package ${pkg};
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
@@ -87,6 +88,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(EtaSplashPlugin.class);
         registerPlugin(EtaThemePlugin.class);
         registerPlugin(EtaNotificationsPlugin.class);
+        registerPlugin(EtaImportPlugin.class);
+        // Opened from the "Import village" tile? The page asks for this once it is up.
+        EtaImportPlugin.note(getIntent());
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -100,6 +104,13 @@ public class MainActivity extends BridgeActivity {
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        // The app was already running when the tile was tapped.
+        EtaImportPlugin.note(intent);
+        super.onNewIntent(intent);
     }
 
     // Fades the splash out and lets it grow a little, over the page underneath. Both run on the render thread, so the
@@ -168,6 +179,21 @@ async function notifications({ dir, pkg }) {
   }
   const small = path.join(RES, "drawable", "ic_stat_eta.xml");
   await writeFile(small, statusIcon((await svg("mark.svg")).toString()));
+  // The tile's icon: a clipboard with an arrow into it. White on clear, 24dp, as Android asks of tile icons.
+  await writeFile(
+    path.join(RES, "drawable", "ic_tile_import.xml"),
+    `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M16,4h2a2,2 0 0 1 2,2v14a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V6a2,2 0 0 1 2,-2h2" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M10,2h4a1,1 0 0 1 1,1v2a1,1 0 0 1 -1,1h-4a1,1 0 0 1 -1,-1V3a1,1 0 0 1 1,-1z" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M12,10v7M9,14l3,3 3,-3" />
+</vector>
+`,
+  );
 
   const file = path.join(ANDROID, "app", "src", "main", "AndroidManifest.xml");
   let manifest = await readFile(file, "utf8");
@@ -211,6 +237,18 @@ async function notifications({ dir, pkg }) {
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>`,
+    "</application>",
+  );
+  // The Quick Settings tile. Active mode: the phone doesn't keep the service bound while the panel is closed.
+  add(
+    ".EtaImportTile",
+    `<service android:name=".EtaImportTile" android:exported="true" android:label="Import village"
+            android:icon="@drawable/ic_tile_import" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
+        </service>`,
     "</application>",
   );
   await writeFile(file, manifest);

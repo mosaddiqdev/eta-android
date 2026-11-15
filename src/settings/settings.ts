@@ -16,6 +16,8 @@ export interface Settings {
   hideFinished: boolean;
   /** A tiny buzz on taps of steppers, switches and tabs, on phones that can. */
   haptics: boolean;
+  /** Android only: when the app opens and the clipboard holds a new village export, import it without a paste. */
+  autoImport: boolean;
   /** Android only: tell me when an upgrade finishes. The other notify switches only matter while this is on. */
   notify: boolean;
   /** The kinds switched off (src/notifications/kinds.ts). Not "the kinds switched on", so a kind added later starts on. */
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   startOn: "auto",
   hideFinished: false,
   haptics: true,
+  autoImport: true,
   notify: false,
   notifyOff: [],
   notifySound: "clash",
@@ -62,6 +65,8 @@ export function parseSettings(raw: unknown): Settings {
     hideFinished: value.hideFinished === true,
     // On unless it was turned off, so an old saved value without the field keeps the default.
     haptics: value.haptics !== false,
+    // On unless it was turned off, like haptics.
+    autoImport: value.autoImport !== false,
     notify: value.notify === true,
     notifyOff: KIND_IDS.filter((id) => Array.isArray(value.notifyOff) && value.notifyOff.includes(id)),
     notifySound: SOUNDS.find((sound) => sound === value.notifySound) ?? DEFAULT_SETTINGS.notifySound,

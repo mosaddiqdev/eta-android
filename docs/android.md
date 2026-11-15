@@ -128,6 +128,17 @@ portrait, and the upgrade it would save the most time on), and the Clock Tower i
 - Times come from the last import. A potion used after it isn't known, so paste again to bring them back in line.
 - Not checked on a device: Doze timing, the boot receiver, and how the large icon looks on each maker's skin.
 
+## Importing without the copy, open, paste dance
+
+Android 10 and newer let only the app in front, or the keyboard, read the clipboard, so nothing can watch for a copy in the background. Two things shorten the trip instead.
+
+- **Import when opened** (Settings, on by default). When the app comes to the front, `useClipboardImport` reads the clipboard. A new village export is imported and a "Updated #TAG" toast says so. Text that isn't a JSON object, text already saved, and text already looked at (a short fingerprint in `clasheta.lastClip`, so a village you forgot doesn't return) are skipped silently. Android 12 and newer show their own "pasted from clipboard" note when an app reads it.
+- **The "Import village" tile.** The player adds it once to the Quick Settings panel. A tap opens the app with `EtaImportPlugin.ACTION` (`EtaImportTile.java`; Android 14 needs a `PendingIntent` for this). The page imports, shows a system toast ("Village imported" or "Already up to date") and calls `App.minimizeApp()`, which returns to the game. The tile always imports and ignores the Settings switch. The parser and the saved villages are in the page, which is why the app opens for a moment and not a hidden screen. Android gives the window focus a moment after it comes forward, so the read is tried a few times (`readClipboardSoon`).
+
+Cost: the tile is a service Android starts only while the panel is showing it (`ACTIVE_TILE`), and the import is the app opening once. Nothing runs in the background and nothing watches the clipboard. The notification alarms are one-shot `AlarmManager` entries with no service or wake lock. Setting battery use to Unrestricted doesn't make the app do more; it only stops phone makers' power managers from delaying or dropping the alarms. Settings tells players this.
+
+Not checked on a device: the clipboard read right after the tile opens the app on each maker's skin, and how the toast and the return to the game look.
+
 ## The status bar
 
 A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.

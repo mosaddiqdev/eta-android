@@ -2,6 +2,7 @@ import { ChevronRight, Monitor, Moon, Sun, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { formatTime } from "../features/finish/format";
 import { noVillages, readVillages, writeVillages } from "../features/village/villages";
+import { canImportOnOpen } from "../native/clipboardImport";
 import { canNotify } from "../native/notifications";
 import { KIND_IDS } from "../notifications/kinds";
 import { type Clock, type StartOn, type Theme, updateSettings, useSettings } from "../settings/settings";
@@ -128,6 +129,26 @@ function Body({
           onChange={(hideFinished) => updateSettings({ hideFinished })}
         />
       </Group>
+
+      {canImportOnOpen() && (
+        <Group title="Import">
+          <Switch
+            label="Import when opened"
+            hint="When you open ClashETA with a new village copied, it is imported for you. No paste needed."
+            checked={settings.autoImport}
+            onChange={(autoImport) => updateSettings({ autoImport })}
+          />
+          <p className={styles.note}>
+            Faster still: add the <strong>Import village</strong> tile to your quick settings panel. One tap
+            there imports what you copied and takes you back to Clash.
+          </p>
+          <p className={styles.note}>
+            Light on your phone: the tile and these alerts only run when you tap or when one is due. Nothing
+            watches in the background. Setting ClashETA’s battery use to Unrestricted costs nothing extra and
+            keeps alerts on time.
+          </p>
+        </Group>
+      )}
 
       {canVibrate() && (
         <Group title="Touch">
