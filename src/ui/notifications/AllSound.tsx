@@ -16,7 +16,7 @@ export function AllSound({ hasClash }: { hasClash: boolean }) {
         options={soundOptions(hasClash)}
         onChange={(sound) => {
           updateSettings({ notifySound: sound, notifySounds: {} });
-          void EtaNotifications.preview({ sound });
+          void EtaNotifications.preview({ sound, cue: "building" });
         }}
       />
       <p className={settings.note}>

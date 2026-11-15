@@ -4,7 +4,7 @@ import { ArtImage } from "../../features/village/components/ArtImage";
 import { imageUrl } from "../../game/images";
 import { EtaNotifications } from "../../native/notifications";
 import { alertId } from "../../notifications/compose";
-import { type Kind, type Sound, soundFor } from "../../notifications/kinds";
+import { cueFor, type Kind, type Sound, soundFor } from "../../notifications/kinds";
 import { updateSettings, useSettings } from "../../settings/settings";
 import { Collapse } from "../Collapse";
 import { Segmented } from "../SettingsSegmented";
@@ -33,7 +33,7 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
   const choose = (sound: Sound) => {
     const { [kind.id]: _dropped, ...rest } = current.notifySounds;
     updateSettings({ notifySounds: sound === current.notifySound ? rest : { ...rest, [kind.id]: sound } });
-    void EtaNotifications.preview({ sound });
+    void EtaNotifications.preview({ sound, cue: cueFor(kind.id) });
   };
 
   // A real notification through the same path as the others, so the picture, the channel and the sound are all tested.
@@ -48,6 +48,7 @@ export function KindRow({ kind, hasClash }: { kind: Kind; hasClash: boolean }) {
         body: "A test. This is how it looks when it is real.",
         image: art ? `public${art}` : null,
         sound: effective,
+        cue: cueFor(kind.id),
       },
     });
   };

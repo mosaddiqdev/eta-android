@@ -88,11 +88,12 @@ public class EtaNotificationsPlugin extends Plugin {
     @PluginMethod
     public void preview(PluginCall call) {
         String sound = call.getString("sound", "system");
+        String cue = call.getString("cue", "building");
         if (preview != null) preview.stop();
         preview = null;
         if (!sound.equals("silent")) {
-            Uri uri = sound.equals("clash") && EtaNotifier.hasClashSound(getContext())
-                ? EtaNotifier.clashSound(getContext())
+            Uri uri = sound.equals("clash") && EtaNotifier.hasClashSound(getContext(), cue)
+                ? EtaNotifier.clashSound(getContext(), cue)
                 : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             preview = RingtoneManager.getRingtone(getContext(), uri);
             if (preview != null) {

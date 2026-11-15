@@ -3,7 +3,7 @@ import { artKey, imageUrl } from "../game/images";
 import type { Plan } from "../village/plan";
 import { helperOptions } from "../village/potion";
 import type { Account, Lane } from "../village/types";
-import { type KindId, kindOf, type Sound, type SoundChoices, soundFor } from "./kinds";
+import { type Cue, type KindId, kindOf, type Sound, type SoundChoices, soundFor } from "./kinds";
 
 /** What the phone is asked to show: the words, the picture and the moment. Matches EtaNotifier.java. */
 export interface Alert {
@@ -18,6 +18,8 @@ export interface Alert {
   image: string | null;
   /** What it plays. Silent inside quiet hours, whatever the kind chose. */
   sound: Sound;
+  /** Which of the game's sounds "clash" plays for this one. */
+  cue: Cue;
 }
 
 export interface QuietHours {
@@ -70,6 +72,12 @@ const assetPath = (key: string | null) => {
 /** Where the notification sits among the player's villages. Left out when there is only one. */
 const where = (tag: string, many: boolean) => (many ? ` ${tag}` : "");
 
+/** Heroes have their own sound, research and pets share one, and everything else is the finished-building sound. */
+function cueOf(upgrade: Plan["upgrades"][number]): Cue {
+  if (upgrade.kind === "hero") return "hero";
+  return upgrade.kind === "pet" || upgrade.lane === "lab" || upgrade.lane === "bbLab" ? "lab" : "building";
+}
+
 function upgradeTitle(u: Plan["upgrades"][number]) {
   if (u.gearUp) return `${u.name} is geared up`;
   if (u.firstBuild) return `${u.name} is built`;
@@ -86,6 +94,7 @@ function finished(plan: Plan, key: string, many: boolean, tag: string) {
     ? ` Next done: ${next.name} in ${formatDuration(next.finishAt - done.finishAt)}.`
     : " Nothing else is running there.";
   return {
+    cue: cueOf(done),
     title: upgradeTitle(done),
     body: `${FREE[done.lane]}${after}${where(tag, many)}`.trim(),
     image: assetPath(done.nextImage ?? done.image),
@@ -106,6 +115,7 @@ function helperFree(account: Account, lane: Lane, at: number, plan: Plan, many: 
   const saves =
     best.saved > 0 && best.saved < best.savedRecurrent ? `${once}, or ${kept} if you keep it on` : kept;
   return {
+    cue: "building" as Cue,
     title: `${helper.name} is free`,
     body: `Best spot: ${best.name}. Saves ${saves}.${where(tag, many)}`,
     image: assetPath(helper.image),
@@ -116,6 +126,7 @@ function towerReady(account: Account, many: boolean, tag: string) {
   const tower = account.clockTower;
   if (!tower) return null;
   return {
+    cue: "building" as Cue,
     title: `${tower.name} is ready`,
     body: `${tower.bonus + 1}x speed for ${formatDuration(tower.seconds)} on the Master Builder and the Star Laboratory.${where(tag, many)}`,
     image: assetPath(artKey(tower.image, tower.level)),
@@ -135,7 +146,7 @@ export function composeAlerts(villages: Village[], wanted: Wanted, now: number):
       const at = event.at * 1000;
       const kind = kindOf(event);
       if (at <= now || !kind || wanted.off.includes(kind)) continue;
-      let words: { title: string; body: string; image: string | null } | null = null;
+      let words: { cue: Cue; title: string; body: string; image: string | null } | null = null;
       if (event.kind === "finish" && event.key) words = finished(plan, event.key, many, account.tag);
       else if (event.kind === "helperReady")
         words = helperFree(account, event.lane, event.at, plan, many, account.tag);

@@ -157,12 +157,12 @@ async function notifications({ dir, pkg }) {
     const java = await readFile(new URL(name, source), "utf8");
     await writeFile(path.join(dir, name), java.replaceAll("__PACKAGE__", pkg));
   }
-  // The game's upgrade sound, if it has been added: any audio file in scripts/android/sounds/ named clash_upgrade.<ext>.
-  // Without it the app still builds and its Settings offer only the phone's sound (docs/android.md).
+  // The game's upgrade sounds, whichever have been added to scripts/android/sounds/: clash_building, clash_hero and
+  // clash_lab (.ogg, .mp3, .wav or .m4a). Without any the app still builds and Settings offers only the phone's sound.
   const sounds = await readdir(new URL("sounds/", source)).catch(() => []);
   const raw = path.join(RES, "raw");
   await rm(raw, { recursive: true, force: true });
-  for (const name of sounds.filter((f) => /^clash_upgrade\.(ogg|mp3|wav|m4a)$/.test(f))) {
+  for (const name of sounds.filter((f) => /^clash_(building|hero|lab)\.(ogg|mp3|wav|m4a)$/.test(f))) {
     await mkdir(raw, { recursive: true });
     await writeFile(path.join(raw, name), await readFile(new URL(`sounds/${name}`, source)));
   }

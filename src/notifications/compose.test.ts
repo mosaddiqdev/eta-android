@@ -113,6 +113,17 @@ describe("composeAlerts", () => {
     expect(alerts.every((a) => !a.body.includes(first.account.tag))).toBe(true);
   });
 
+  it("gives every alert the game sound that fits it", () => {
+    for (const a of alerts) expect(["building", "hero", "lab"]).toContain(a.cue);
+    expect(alerts.filter((a) => a.kind === "lab").every((a) => a.cue === "lab")).toBe(true);
+    expect(alerts.filter((a) => a.kind === "pet").every((a) => a.cue === "lab")).toBe(true);
+    expect(
+      alerts
+        .filter((a) => a.kind === "helperBuilder" || a.kind === "tower")
+        .every((a) => a.cue === "building"),
+    ).toBe(true);
+  });
+
   it("plays nothing inside quiet hours, whatever the kind chose", () => {
     const window = { from: 0, to: 1 };
     const some = alertsOf(first, { ...all, notifySound: "clash", quiet: window });

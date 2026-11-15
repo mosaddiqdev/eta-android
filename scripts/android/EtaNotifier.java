@@ -128,14 +128,30 @@ final class EtaNotifier {
     // Channels are per sound, not per kind. Android fixes a channel's sound when it is created, and recreating one throws
     // away what the person changed in the phone's settings, so the three sounds get a channel each, made once. Which
     // kinds are on and which sound each uses is the app's own setting (src/notifications/kinds.ts).
-    static final String CLASH_SOUND = "clash_upgrade";
+    // The game's own sounds: res/raw/clash_building, clash_hero and clash_lab, whichever have been added. The page says
+    // which one an alert plays (its "cue"), so a hero finishing sounds different from a building.
+    static final String[] CUES = {"building", "hero", "lab"};
+    private static final java.util.Map<String, String> CUE_NAMES = new java.util.HashMap<String, String>() {{
+        put("building", "Building finished");
+        put("hero", "Hero finished");
+        put("lab", "Research finished");
+    }};
 
-    static boolean hasClashSound(Context context) {
-        return context.getResources().getIdentifier(CLASH_SOUND, "raw", context.getPackageName()) != 0;
+    private static int clashRes(Context context, String cue) {
+        return context.getResources().getIdentifier("clash_" + cue, "raw", context.getPackageName());
     }
 
-    static Uri clashSound(Context context) {
-        return Uri.parse("android.resource://" + context.getPackageName() + "/raw/" + CLASH_SOUND);
+    static boolean hasClashSound(Context context) {
+        for (String cue : CUES) if (clashRes(context, cue) != 0) return true;
+        return false;
+    }
+
+    static boolean hasClashSound(Context context, String cue) {
+        return clashRes(context, cue) != 0;
+    }
+
+    static Uri clashSound(Context context, String cue) {
+        return Uri.parse("android.resource://" + context.getPackageName() + "/raw/clash_" + cue);
     }
 
     static void ensureChannels(Context context) {
@@ -154,12 +170,13 @@ final class EtaNotifier {
         silent.setDescription("ClashETA alerts without a sound, and anything during your quiet hours.");
         manager.createNotificationChannel(silent);
 
-        if (hasClashSound(context)) {
+        for (String cue : CUES) {
+            if (!hasClashSound(context, cue)) continue;
             NotificationChannel clash = new NotificationChannel(
-                "sound_clash", "Clash upgrade sound", NotificationManager.IMPORTANCE_DEFAULT);
-            clash.setDescription("ClashETA alerts that play the game's upgrade sound.");
+                "sound_clash_" + cue, "Clash sound: " + CUE_NAMES.get(cue), NotificationManager.IMPORTANCE_DEFAULT);
+            clash.setDescription("ClashETA alerts that play the game's " + CUE_NAMES.get(cue).toLowerCase() + " sound.");
             clash.setSound(
-                clashSound(context),
+                clashSound(context, cue),
                 new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -171,7 +188,15 @@ final class EtaNotifier {
     /** The sound to use: what the page asked for, or the phone's own when the game's file isn't in this build. */
     static String soundOf(Context context, JSONObject item) {
         String sound = item.optString("sound", "system");
-        return sound.equals("clash") && !hasClashSound(context) ? "system" : sound;
+        return sound.equals("clash") && !hasClashSound(context, cueOf(item)) ? "system" : sound;
+    }
+
+    private static String cueOf(JSONObject item) {
+        return item.optString("cue", "building");
+    }
+
+    private static String channelOf(String sound, String cue) {
+        return sound.equals("clash") ? "sound_clash_" + cue : "sound_" + sound;
     }
 
     // The pictures ship inside the app (public/game in the assets), a few KB each. The game's pictures are not square
@@ -200,7 +225,7 @@ final class EtaNotifier {
         String body = item.optString("body");
 
         Intent open = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "sound_" + sound)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelOf(sound, cueOf(item)))
             .setSmallIcon(R.drawable.ic_stat_eta)
             .setColor(0xFF0E7BAD)
             .setContentTitle(item.optString("title"))
@@ -213,7 +238,7 @@ final class EtaNotifier {
             .setPriority(silent ? NotificationCompat.PRIORITY_LOW : NotificationCompat.PRIORITY_DEFAULT)
             .setSilent(silent);
         if (Build.VERSION.SDK_INT < 26 && !silent)
-            if (sound.equals("clash")) builder.setSound(clashSound(context));
+            if (sound.equals("clash")) builder.setSound(clashSound(context, cueOf(item)));
             else builder.setDefaults(NotificationCompat.DEFAULT_SOUND);
         if (open != null)
             builder.setContentIntent(PendingIntent.getActivity(
