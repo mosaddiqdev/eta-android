@@ -1,0 +1,184 @@
+/* The Notifications sheet borrows the frame, groups, switches and choices from SettingsSheet.module.css. */
+
+.head {
+  gap: 0.5rem;
+  justify-content: flex-start;
+  padding-left: 0.75rem;
+}
+
+.rest {
+  --collapse-gap: 1.25rem;
+}
+
+/* The gap above belongs to the drawer it is set on. Drawers inside it fold to nothing, with no gap to give back. */
+.restBody {
+  --collapse-gap: 0px;
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* What is wrong, or fine, about delivery. One line each: a mark, a title, why, and the fix when there is one. */
+.health {
+  display: grid;
+  gap: 0.875rem;
+  padding: 0.75rem 0.25rem 0.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.healthRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.healthRow > svg {
+  flex: none;
+  margin-top: 0.125rem;
+}
+
+.healthRow > span {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.healthRow b {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.healthRow small {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.healthRow button {
+  margin-top: 0.25rem;
+}
+
+.good {
+  color: var(--good);
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.next {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-inline: 0.25rem;
+}
+
+.next li > span:last-child {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.next b {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.next small {
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.blank {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--raised);
+}
+
+/* A kind: its picture beside its switch, and underneath, indented to the text, its sound. */
+.kind {
+  display: grid;
+}
+
+.kind + .kind {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.kindTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.kindTop > :last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.soundLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0.25rem;
+  padding: 0 0.25rem 0 3.5rem;
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.soundLine b {
+  margin-left: 0.25rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.soundLine svg {
+  flex: none;
+  transition: rotate var(--dur-state) var(--ease);
+}
+
+.soundLine svg[data-open="true"] {
+  rotate: 180deg;
+}
+
+.soundLine:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.soundPanel {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  padding: 0.25rem 0 0.25rem 3.5rem;
+}
+
+.soundPanel > fieldset {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soundLine svg {
+    transition: none;
+  }
+}

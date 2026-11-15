@@ -439,3 +439,8 @@
   gap: 0.5rem;
   padding-inline: 0.25rem;
 }
+
+.segmented input:disabled + span {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

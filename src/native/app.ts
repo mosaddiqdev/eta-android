@@ -23,9 +23,17 @@ export function startApp() {
   window.addEventListener(VILLAGES_CHANGED, syncNotifications);
   watchSettings((next, previous) => {
     if (next.theme !== previous.theme) applyNativeTheme(next.theme);
-    const changed = (
-      ["notify", "notifyHelper", "notifyTower", "quietHours", "quietFrom", "quietTo"] as const
-    ).some((field) => next[field] !== previous[field]);
+    // Everything the notifications are made from. Theme, clock and the rest don't change them.
+    const fields = [
+      "notify",
+      "notifyOff",
+      "notifySound",
+      "notifySounds",
+      "quietHours",
+      "quietFrom",
+      "quietTo",
+    ] as const;
+    const changed = fields.some((field) => JSON.stringify(next[field]) !== JSON.stringify(previous[field]));
     if (changed) syncNotifications();
   });
   if (import.meta.env.PUBLIC_DEBUG_INSETS === "1") showInsetsDebug();

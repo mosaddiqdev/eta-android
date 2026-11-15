@@ -1,5 +1,5 @@
 import { readVillages } from "../features/village/villages";
-import { composeAlerts, type Village } from "../notifications/compose";
+import { type Alert, composeAlerts, type Village } from "../notifications/compose";
 import { getSettings } from "../settings/settings";
 import { parseExport } from "../village/parse";
 import { buildPlan } from "../village/plan";
@@ -27,22 +27,27 @@ async function villages(): Promise<Village[]> {
   return found;
 }
 
-async function sync() {
+/** What the phone would be told right now: the settings applied to every saved village. Also what Settings previews. */
+export async function plannedAlerts(): Promise<Alert[]> {
   const settings = getSettings();
-  // Off, or not allowed: clear what was armed, so turning it off really stops them.
-  const { permission } = await EtaNotifications.status();
-  if (!settings.notify || permission !== "granted")
-    return void (await EtaNotifications.schedule({ items: [] }));
-  const items = composeAlerts(
+  return composeAlerts(
     await villages(),
     {
-      helper: settings.notifyHelper,
-      tower: settings.notifyTower,
+      off: settings.notifyOff,
+      notifySound: settings.notifySound,
+      notifySounds: settings.notifySounds,
       quiet: settings.quietHours ? { from: settings.quietFrom, to: settings.quietTo } : null,
     },
     Date.now(),
   );
-  await EtaNotifications.schedule({ items });
+}
+
+async function sync() {
+  // Off, or not allowed: clear what was armed, so turning it off really stops them.
+  const { permission } = await EtaNotifications.status();
+  if (!getSettings().notify || permission !== "granted")
+    return void (await EtaNotifications.schedule({ items: [] }));
+  await EtaNotifications.schedule({ items: await plannedAlerts() });
 }
 
 /** Sets the phone's alarms to match the saved villages and the settings. Safe to call often; calls close together become one. */

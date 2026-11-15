@@ -15,15 +15,29 @@ describe("parseSettings", () => {
     });
   });
 
-  it("keeps notifications off until they are turned on, and the two kinds on", () => {
+  it("keeps notifications off until they are turned on, with every kind on", () => {
     expect(DEFAULT_SETTINGS).toMatchObject({
       notify: false,
-      notifyHelper: true,
-      notifyTower: true,
+      notifyOff: [],
+      notifySound: "system",
       quietHours: false,
     });
     expect(parseSettings({ notify: "yes" }).notify).toBe(false);
-    expect(parseSettings({ notify: true, notifyHelper: false }).notifyHelper).toBe(false);
+  });
+
+  it("keeps only the kinds and sounds it knows", () => {
+    const read = parseSettings({
+      notifyOff: ["tower", "potion", 7],
+      notifySound: "clash",
+      notifySounds: { lab: "silent", tower: "loud", potion: "clash" },
+    });
+    expect(read.notifyOff).toEqual(["tower"]);
+    expect(read.notifySound).toBe("clash");
+    expect(read.notifySounds).toEqual({ lab: "silent" });
+    expect(parseSettings({ notifySound: "loud", notifyOff: "tower" })).toMatchObject({
+      notifySound: "system",
+      notifyOff: [],
+    });
   });
 
   it("only takes quiet hours that are a minute of the day", () => {

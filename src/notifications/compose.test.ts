@@ -7,7 +7,7 @@ import { buildPlan } from "../village/plan";
 import { emptyScenario } from "../village/scenario";
 import { type Alert, alertId, composeAlerts, isQuiet, type Village, type Wanted } from "./compose";
 
-const all: Wanted = { helper: true, tower: true, quiet: null };
+const all: Wanted = { off: [], notifySound: "system", notifySounds: {}, quiet: null };
 
 function village(data: unknown): Village {
   const { account, warnings } = parseExport(data, snapshotCatalog);
@@ -52,7 +52,9 @@ describe("composeAlerts", () => {
   const alerts = alertsOf(first);
 
   it("has one for every upgrade that finishes later, soonest first", () => {
-    expect(alerts.filter((a) => a.channel === "upgrades")).toHaveLength(first.plan.upgrades.length);
+    expect(alerts.filter((a) => a.title.match(/ is (now level|built|geared up|done)/))).toHaveLength(
+      first.plan.upgrades.length,
+    );
     expect(alerts.map((a) => a.at)).toEqual([...alerts.map((a) => a.at)].sort((a, b) => a - b));
   });
 
@@ -75,14 +77,28 @@ describe("composeAlerts", () => {
   });
 
   it("says what finished and what is free, in the game's words", () => {
-    const up = alerts.find((a) => a.channel === "upgrades") as Alert;
+    const up = alerts.find((a) => a.kind === "builder") as Alert;
     expect(up.title).toMatch(/ is (now level \d+|built|geared up|done)$/);
     expect(up.body).toMatch(/is free\./);
   });
 
-  it("leaves out the helper and the tower when they are turned off", () => {
-    const quiet = alertsOf(first, { helper: false, tower: false, quiet: null });
-    expect(quiet.every((a) => a.channel === "upgrades")).toBe(true);
+  it("leaves out a kind that is switched off, and only that kind", () => {
+    const kinds = new Set(alerts.map((a) => a.kind));
+    expect(kinds.has("helperBuilder")).toBe(true);
+    const without = alertsOf(first, { ...all, off: ["helperBuilder", "tower"] });
+    expect(without.some((a) => a.kind === "helperBuilder" || a.kind === "tower")).toBe(false);
+    expect(without.filter((a) => a.kind === "builder")).toHaveLength(
+      alerts.filter((a) => a.kind === "builder").length,
+    );
+  });
+
+  it("gives each kind its own sound, falling back to the default", () => {
+    const sounds = alertsOf(first, {
+      ...all,
+      notifySound: "clash",
+      notifySounds: { helperBuilder: "silent" },
+    });
+    for (const a of sounds) expect(a.sound).toBe(a.kind === "helperBuilder" ? "silent" : "clash");
   });
 
   it("skips what is already over", () => {
@@ -97,11 +113,11 @@ describe("composeAlerts", () => {
     expect(alerts.every((a) => !a.body.includes(first.account.tag))).toBe(true);
   });
 
-  it("marks what lands inside quiet hours as silent", () => {
-    const everything = { from: 0, to: 1 };
-    const none = alertsOf(first, { ...all, quiet: { from: 5, to: 5 } });
-    expect(none.every((a) => !a.silent)).toBe(true);
-    const some = alertsOf(first, { ...all, quiet: everything });
-    expect(some.every((a) => a.silent === isQuiet(a.at, everything))).toBe(true);
+  it("plays nothing inside quiet hours, whatever the kind chose", () => {
+    const window = { from: 0, to: 1 };
+    const some = alertsOf(first, { ...all, notifySound: "clash", quiet: window });
+    for (const a of some) expect(a.sound).toBe(isQuiet(a.at, window) ? "silent" : "clash");
+    const never = alertsOf(first, { ...all, notifySound: "clash", quiet: { from: 5, to: 5 } });
+    expect(never.every((a) => a.sound === "clash")).toBe(true);
   });
 });

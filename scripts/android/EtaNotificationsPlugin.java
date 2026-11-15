@@ -2,7 +2,11 @@ package __PACKAGE__;
 
 import android.Manifest;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.PowerManager;
 import android.os.Build;
 import android.provider.Settings;
 import androidx.core.app.NotificationManagerCompat;
@@ -22,6 +26,14 @@ import org.json.JSONArray;
     permissions = {@Permission(strings = {Manifest.permission.POST_NOTIFICATIONS}, alias = "post")})
 public class EtaNotificationsPlugin extends Plugin {
     private static final String ASKED = "askedForNotifications";
+    // The sound being previewed, so a second tap replaces it and doesn't pile on.
+    private Ringtone preview;
+
+    // Made now, not at the first notification, so the three sounds are already in the phone's settings.
+    @Override
+    public void load() {
+        EtaNotifier.ensureChannels(getContext());
+    }
 
     // "prompt": Android will still show its question. "denied": it won't, so the only way is the phone's settings.
     private JSObject status() {
@@ -30,6 +42,11 @@ public class EtaNotificationsPlugin extends Plugin {
         JSObject status = new JSObject();
         status.put("permission", on ? "granted" : Build.VERSION.SDK_INT >= 33 && !asked ? "prompt" : "denied");
         status.put("exact", EtaNotifier.canScheduleExact(getContext()));
+        // Makers that stop idle apps (Xiaomi, Oppo and others) can drop the alarms; "No restrictions" in the battery
+        // settings is what keeps them.
+        PowerManager power = getContext().getSystemService(PowerManager.class);
+        status.put("unrestricted", power.isIgnoringBatteryOptimizations(getContext().getPackageName()));
+        status.put("clash", EtaNotifier.hasClashSound(getContext()));
         return status;
     }
 
@@ -64,6 +81,34 @@ public class EtaNotificationsPlugin extends Plugin {
     @PluginMethod
     public void test(PluginCall call) {
         EtaNotifier.post(getContext(), call.getObject("item"));
+        call.resolve(new JSObject());
+    }
+
+    // Plays a sound the way a notification would, so a choice can be heard before it is made.
+    @PluginMethod
+    public void preview(PluginCall call) {
+        String sound = call.getString("sound", "system");
+        if (preview != null) preview.stop();
+        preview = null;
+        if (!sound.equals("silent")) {
+            Uri uri = sound.equals("clash") && EtaNotifier.hasClashSound(getContext())
+                ? EtaNotifier.clashSound(getContext())
+                : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            preview = RingtoneManager.getRingtone(getContext(), uri);
+            if (preview != null) {
+                preview.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+                preview.play();
+            }
+        }
+        call.resolve(new JSObject());
+    }
+
+    @PluginMethod
+    public void openBatterySettings(PluginCall call) {
+        open(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
         call.resolve(new JSObject());
     }
 

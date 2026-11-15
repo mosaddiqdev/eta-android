@@ -3,6 +3,7 @@ import { artKey, imageUrl } from "../game/images";
 import type { Plan } from "../village/plan";
 import { helperOptions } from "../village/potion";
 import type { Account, Lane } from "../village/types";
+import { type KindId, kindOf, type Sound, type SoundChoices, soundFor } from "./kinds";
 
 /** What the phone is asked to show: the words, the picture and the moment. Matches EtaNotifier.java. */
 export interface Alert {
@@ -10,13 +11,13 @@ export interface Alert {
   id: number;
   /** Unix milliseconds. */
   at: number;
-  channel: "upgrades" | "helpers" | "tower";
+  kind: KindId;
   title: string;
   body: string;
   /** Path in the app's assets (public/game/...), or null when the game data has no picture for it. */
   image: string | null;
-  /** Inside quiet hours: no sound. */
-  silent: boolean;
+  /** What it plays. Silent inside quiet hours, whatever the kind chose. */
+  sound: Sound;
 }
 
 export interface QuietHours {
@@ -29,9 +30,9 @@ export interface Village {
   plan: Plan;
 }
 
-export interface Wanted {
-  helper: boolean;
-  tower: boolean;
+export interface Wanted extends SoundChoices {
+  /** Kinds switched off. */
+  off: readonly KindId[];
   quiet: QuietHours | null;
 }
 
@@ -132,26 +133,20 @@ export function composeAlerts(villages: Village[], wanted: Wanted, now: number):
   for (const { account, plan } of villages) {
     for (const event of plan.events) {
       const at = event.at * 1000;
-      if (at <= now) continue;
-      let channel: Alert["channel"];
+      const kind = kindOf(event);
+      if (at <= now || !kind || wanted.off.includes(kind)) continue;
       let words: { title: string; body: string; image: string | null } | null = null;
-      if (event.kind === "finish" && event.key) {
-        channel = "upgrades";
-        words = finished(plan, event.key, many, account.tag);
-      } else if (event.kind === "helperReady" && wanted.helper) {
-        channel = "helpers";
+      if (event.kind === "finish" && event.key) words = finished(plan, event.key, many, account.tag);
+      else if (event.kind === "helperReady")
         words = helperFree(account, event.lane, event.at, plan, many, account.tag);
-      } else if (event.kind === "towerReady" && wanted.tower) {
-        channel = "tower";
-        words = towerReady(account, many, account.tag);
-      } else continue;
+      else if (event.kind === "towerReady") words = towerReady(account, many, account.tag);
       if (!words) continue;
       alerts.push({
         id: alertId(`${account.tag}|${event.kind}|${event.key ?? event.lane}|${event.at}`),
         at,
-        channel,
+        kind,
         ...words,
-        silent: wanted.quiet ? isQuiet(at, wanted.quiet) : false,
+        sound: wanted.quiet && isQuiet(at, wanted.quiet) ? "silent" : soundFor(wanted, kind),
       });
     }
   }

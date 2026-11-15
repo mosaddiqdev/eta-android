@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { paintSystemBars } from "../native/systemBars";
+import { KIND_IDS, type KindId, SOUNDS, type Sound } from "../notifications/kinds";
 
 export type Theme = "auto" | "dark" | "light";
 export type Clock = "auto" | "12" | "24";
@@ -17,10 +18,11 @@ export interface Settings {
   haptics: boolean;
   /** Android only: tell me when an upgrade finishes. The other notify switches only matter while this is on. */
   notify: boolean;
-  /** A Builder's Apprentice or Lab Assistant is free and something could use it. */
-  notifyHelper: boolean;
-  /** The Builder Base Clock Tower is ready to use again. */
-  notifyTower: boolean;
+  /** The kinds switched off (src/notifications/kinds.ts). Not "the kinds switched on", so a kind added later starts on. */
+  notifyOff: KindId[];
+  /** The sound everything uses unless its kind chose its own. */
+  notifySound: Sound;
+  notifySounds: Partial<Record<KindId, Sound>>;
   /** Notifications that arrive between `quietFrom` and `quietTo` come without sound. */
   quietHours: boolean;
   /** Minutes after midnight, on the phone's clock. The window may run past midnight (22:00 to 07:00). */
@@ -37,8 +39,9 @@ export const DEFAULT_SETTINGS: Settings = {
   hideFinished: false,
   haptics: true,
   notify: false,
-  notifyHelper: true,
-  notifyTower: true,
+  notifyOff: [],
+  notifySound: "system",
+  notifySounds: {},
   quietHours: false,
   quietFrom: 22 * 60,
   quietTo: 7 * 60,
@@ -51,6 +54,16 @@ const STARTS: readonly StartOn[] = ["auto", "finish", "village"];
 const minuteOfDay = (value: unknown, fallback: number) =>
   typeof value === "number" && Number.isInteger(value) && value >= 0 && value < 24 * 60 ? value : fallback;
 
+function soundsOf(raw: unknown): Partial<Record<KindId, Sound>> {
+  const stored = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const kept: Partial<Record<KindId, Sound>> = {};
+  for (const id of KIND_IDS) {
+    const sound = SOUNDS.find((s) => s === stored[id]);
+    if (sound) kept[id] = sound;
+  }
+  return kept;
+}
+
 /** Reads whatever was stored. Old, edited or half-written values fall back one field at a time, never all at once. */
 export function parseSettings(raw: unknown): Settings {
   const value = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
@@ -62,8 +75,9 @@ export function parseSettings(raw: unknown): Settings {
     // On unless it was turned off, so an old saved value without the field keeps the default.
     haptics: value.haptics !== false,
     notify: value.notify === true,
-    notifyHelper: value.notifyHelper !== false,
-    notifyTower: value.notifyTower !== false,
+    notifyOff: KIND_IDS.filter((id) => Array.isArray(value.notifyOff) && value.notifyOff.includes(id)),
+    notifySound: SOUNDS.find((sound) => sound === value.notifySound) ?? DEFAULT_SETTINGS.notifySound,
+    notifySounds: soundsOf(value.notifySounds),
     quietHours: value.quietHours === true,
     quietFrom: minuteOfDay(value.quietFrom, DEFAULT_SETTINGS.quietFrom),
     quietTo: minuteOfDay(value.quietTo, DEFAULT_SETTINGS.quietTo),

@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioAttributes;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -124,24 +125,53 @@ final class EtaNotifier {
         }
     }
 
-    // One channel per kind, so each can be turned off or changed in the phone's own settings. Importance and sound
-    // can't be changed by the app once a channel exists. Notifications inside quiet hours go to the silent one.
-    private static void channels(Context context) {
+    // Channels are per sound, not per kind. Android fixes a channel's sound when it is created, and recreating one throws
+    // away what the person changed in the phone's settings, so the three sounds get a channel each, made once. Which
+    // kinds are on and which sound each uses is the app's own setting (src/notifications/kinds.ts).
+    static final String CLASH_SOUND = "clash_upgrade";
+
+    static boolean hasClashSound(Context context) {
+        return context.getResources().getIdentifier(CLASH_SOUND, "raw", context.getPackageName()) != 0;
+    }
+
+    static Uri clashSound(Context context) {
+        return Uri.parse("android.resource://" + context.getPackageName() + "/raw/" + CLASH_SOUND);
+    }
+
+    static void ensureChannels(Context context) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
-        String[][] all = {
-            {"upgrades", "Upgrades finished", "When a building, hero, pet or research is done."},
-            {"helpers", "Helper is free", "When a Builder's Apprentice or Lab Assistant can be put to work."},
-            {"tower", "Clock Tower ready", "When the Builder Base Clock Tower can be used again."},
-            {"quiet", "Quiet hours", "Notifications that come during your quiet hours. No sound."},
-        };
-        for (String[] c : all) {
-            boolean quiet = c[0].equals("quiet");
-            NotificationChannel channel = new NotificationChannel(
-                c[0], c[1], quiet ? NotificationManager.IMPORTANCE_LOW : NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(c[2]);
-            manager.createNotificationChannel(channel);
+        // The first build had one channel per kind. Nothing uses them now.
+        for (String old : new String[] {"upgrades", "helpers", "tower", "quiet"}) manager.deleteNotificationChannel(old);
+
+        NotificationChannel phone = new NotificationChannel(
+            "sound_system", "Phone's notification sound", NotificationManager.IMPORTANCE_DEFAULT);
+        phone.setDescription("ClashETA alerts that use your phone's own sound.");
+        manager.createNotificationChannel(phone);
+
+        NotificationChannel silent = new NotificationChannel(
+            "sound_silent", "No sound", NotificationManager.IMPORTANCE_LOW);
+        silent.setDescription("ClashETA alerts without a sound, and anything during your quiet hours.");
+        manager.createNotificationChannel(silent);
+
+        if (hasClashSound(context)) {
+            NotificationChannel clash = new NotificationChannel(
+                "sound_clash", "Clash upgrade sound", NotificationManager.IMPORTANCE_DEFAULT);
+            clash.setDescription("ClashETA alerts that play the game's upgrade sound.");
+            clash.setSound(
+                clashSound(context),
+                new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+            manager.createNotificationChannel(clash);
         }
+    }
+
+    /** The sound to use: what the page asked for, or the phone's own when the game's file isn't in this build. */
+    static String soundOf(Context context, JSONObject item) {
+        String sound = item.optString("sound", "system");
+        return sound.equals("clash") && !hasClashSound(context) ? "system" : sound;
     }
 
     // The pictures ship inside the app (public/game in the assets), a few KB each. The game's pictures are not square
@@ -164,13 +194,13 @@ final class EtaNotifier {
     static void post(Context context, JSONObject item) {
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         if (!manager.areNotificationsEnabled()) return;
-        channels(context);
-        boolean silent = item.optBoolean("silent");
-        String channel = silent ? "quiet" : item.optString("channel", "upgrades");
+        ensureChannels(context);
+        String sound = soundOf(context, item);
+        boolean silent = sound.equals("silent");
         String body = item.optString("body");
 
         Intent open = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channel)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "sound_" + sound)
             .setSmallIcon(R.drawable.ic_stat_eta)
             .setColor(0xFF0E7BAD)
             .setContentTitle(item.optString("title"))
@@ -179,8 +209,12 @@ final class EtaNotifier {
             .setWhen(item.optLong("at"))
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            // Before Android 8 the importance is the notification's own.
-            .setPriority(silent ? NotificationCompat.PRIORITY_LOW : NotificationCompat.PRIORITY_DEFAULT);
+            // Before Android 8 the sound and importance are the notification's own, not the channel's.
+            .setPriority(silent ? NotificationCompat.PRIORITY_LOW : NotificationCompat.PRIORITY_DEFAULT)
+            .setSilent(silent);
+        if (Build.VERSION.SDK_INT < 26 && !silent)
+            if (sound.equals("clash")) builder.setSound(clashSound(context));
+            else builder.setDefaults(NotificationCompat.DEFAULT_SOUND);
         if (open != null)
             builder.setContentIntent(PendingIntent.getActivity(
                 context, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
