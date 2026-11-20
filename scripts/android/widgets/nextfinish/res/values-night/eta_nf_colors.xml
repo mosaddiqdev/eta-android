@@ -8,4 +8,10 @@
     <color name="eta_nf_builder">#FF4ABBE8</color>
     <color name="eta_nf_lab">#FFE660C6</color>
     <color name="eta_nf_pet">#FFE3BE68</color>
+    <color name="eta_nf_glass">#A8161616</color>
+    <color name="eta_nf_sheen_top">#2EFFFFFF</color>
+    <color name="eta_nf_sheen_bottom">#04FFFFFF</color>
+    <color name="eta_nf_rim">#42FFFFFF</color>
+    <color name="eta_nf_tile">#1FFFFFFF</color>
+    <color name="eta_nf_tile_rim">#29FFFFFF</color>
 </resources>

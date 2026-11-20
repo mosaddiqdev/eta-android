@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/eta_nf_raised" />
-    <corners android:radius="@dimen/eta_nf_radius" />
-</shape>
+<!-- Glass: a translucent body, a sheen that is lit from the top left, and a thin lit rim. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/eta_nf_glass" />
+            <corners android:radius="@dimen/eta_nf_radius" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient android:angle="315" android:startColor="@color/eta_nf_sheen_top" android:endColor="@color/eta_nf_sheen_bottom" />
+            <corners android:radius="@dimen/eta_nf_radius" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <stroke android:width="1dp" android:color="@color/eta_nf_rim" />
+            <corners android:radius="@dimen/eta_nf_radius" />
+        </shape>
+    </item>
+</layer-list>

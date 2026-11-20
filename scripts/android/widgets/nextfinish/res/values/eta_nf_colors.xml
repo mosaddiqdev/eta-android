@@ -17,4 +17,24 @@
     <color name="eta_nf_dark_raised">#FF1A1A1A</color>
     <color name="eta_nf_dark_raised2">#FF232323</color>
     <color name="eta_nf_dark_line">#FF333333</color>
+
+    <!-- The glass: translucent fills with a lit rim and a soft sheen, so the wallpaper shows through. -->
+    <color name="eta_nf_glass">#B8FAFAF9</color>
+    <color name="eta_nf_sheen_top">#99FFFFFF</color>
+    <color name="eta_nf_sheen_bottom">#1FFFFFFF</color>
+    <color name="eta_nf_rim">#D9FFFFFF</color>
+    <color name="eta_nf_tile">#8CFFFFFF</color>
+    <color name="eta_nf_tile_rim">#B3FFFFFF</color>
+    <color name="eta_nf_light_glass">#B8FAFAF9</color>
+    <color name="eta_nf_light_sheen_top">#99FFFFFF</color>
+    <color name="eta_nf_light_sheen_bottom">#1FFFFFFF</color>
+    <color name="eta_nf_light_rim">#D9FFFFFF</color>
+    <color name="eta_nf_light_tile">#8CFFFFFF</color>
+    <color name="eta_nf_light_tile_rim">#B3FFFFFF</color>
+    <color name="eta_nf_dark_glass">#A8161616</color>
+    <color name="eta_nf_dark_sheen_top">#2EFFFFFF</color>
+    <color name="eta_nf_dark_sheen_bottom">#04FFFFFF</color>
+    <color name="eta_nf_dark_rim">#42FFFFFF</color>
+    <color name="eta_nf_dark_tile">#1FFFFFFF</color>
+    <color name="eta_nf_dark_tile_rim">#29FFFFFF</color>
 </resources>
