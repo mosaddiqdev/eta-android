@@ -1,0 +1,10 @@
+<receiver android:name=".NextFinishProvider" android:exported="true" android:label="@string/eta_nf_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- The day and the clock are worked out on the phone, so a new time zone, clock or language redraws them. -->
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/eta_nf_info" />
+        </receiver>
