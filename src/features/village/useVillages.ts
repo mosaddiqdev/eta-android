@@ -12,8 +12,8 @@ import {
   readVillages,
   type SavedVillage,
   type SavedVillages,
-  savedVillage,
   type VillageSummary,
+  withVillage,
   writeVillages,
 } from "./villages";
 
@@ -28,6 +28,8 @@ export type Status = "loading" | "empty" | "ready";
 export type ImportIntent = "update" | "add";
 /** "blocked": the browser or the player refused the read. "unsupported": this browser has no clipboard read at all. */
 export type ImportOutcome = "imported" | "same" | "invalid" | "blocked" | "unsupported";
+/** What the clipboard import answers with: "imported" also covers a refresh of a village that was already saved. */
+export type QuietOutcome = "imported" | "same" | "invalid";
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
@@ -95,14 +97,20 @@ export function useVillages(resetScenario: () => void) {
   );
 
   const accept = useCallback(
-    async (input: unknown, raw: string | null, intent: ImportIntent = "update"): Promise<ImportOutcome> => {
+    async (
+      input: unknown,
+      raw: string | null,
+      intent: ImportIntent = "update",
+      quiet = false,
+    ): Promise<ImportOutcome> => {
       const game = await getCatalog();
       let account: Account;
       let warnings: ParseWarning[];
       try {
         ({ account, warnings } = parseExport(input, game));
       } catch (problem) {
-        setError(problem instanceof ExportError ? problem.message : COPY.unreadable);
+        // Text that merely sits on the clipboard isn't an import the player asked for, so it gets no error.
+        if (!quiet) setError(problem instanceof ExportError ? problem.message : COPY.unreadable);
         return "invalid";
       }
       // Asking for "another" village while the open one is still on the clipboard means the other isn't copied yet.
@@ -113,15 +121,12 @@ export function useVillages(resetScenario: () => void) {
       const known = villages.some((v) => v.tag === account.tag);
       const savedAt = nowSeconds();
       if (raw) {
-        const entry = savedVillage(account, raw, savedAt);
-        commit({
-          active: account.tag,
-          villages: known ? villages.map((v) => (v.tag === account.tag ? entry : v)) : [...villages, entry],
-        });
+        commit(withVillage(savedRef.current, account, raw, savedAt));
       }
       show(account, warnings, savedAt);
       if (!known) toast(`Added ${account.tag}`);
       else if (account.tag !== wasOpen) toast(`Switched to ${account.tag}`, { tone: "neutral" });
+      else if (quiet) toast(`Updated ${account.tag}`);
       return "imported";
     },
     [commit, getCatalog, show],
@@ -160,6 +165,19 @@ export function useVillages(resetScenario: () => void) {
         return "invalid";
       }
       return accept(text, text, intent);
+    },
+    [accept],
+  );
+
+  /**
+   * Imports text that came from the clipboard without the player pasting it: when the app opens or from the tile.
+   * Nothing is shown for text that isn't an export, and an export that is already saved is left alone.
+   */
+  const importCopied = useCallback(
+    async (text: string): Promise<QuietOutcome> => {
+      if (savedRef.current.villages.some((v) => v.raw === text)) return "same";
+      const outcome = await accept(text, text, "update", true);
+      return outcome === "imported" ? "imported" : "invalid";
     },
     [accept],
   );
@@ -227,6 +245,7 @@ export function useVillages(resetScenario: () => void) {
     clearError: () => setError(null),
     importText,
     importClipboard,
+    importCopied,
     importSample,
     switchTo,
     forget,

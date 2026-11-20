@@ -75,6 +75,16 @@ export function planUpgrade(upgrade: Upgrade, account: Account, scenario: Scenar
   };
 }
 
+/**
+ * How many workers a lane has right now and how many of them are busy. A Goblin Builder or Goblin Researcher is an extra
+ * worker only while he is working, so with one on the job a lane of 6 shows 7 of 7, and without one it shows 6 of 6.
+ * Null for a lane with no known worker count.
+ */
+export function laneLoad(summary: LaneSummary): { busy: number; total: number } | null {
+  if (summary.capacity === null) return null;
+  return { busy: summary.busy + summary.goblinBusy, total: summary.capacity + summary.goblinBusy };
+}
+
 function summarize(lane: Lane, upgrades: PlannedUpgrade[], account: Account): LaneSummary {
   // An upgrade that has already finished no longer occupies a worker, so it is not counted as busy.
   const inLane = upgrades.filter((u) => u.lane === lane && !u.likelyDone);

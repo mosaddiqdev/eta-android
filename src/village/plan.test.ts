@@ -3,7 +3,7 @@ import { snapshotCatalog } from "../test/catalog";
 import one from "./fixtures/account-1.json";
 import two from "./fixtures/account-2.json";
 import { parseExport } from "./parse";
-import { buildPlan } from "./plan";
+import { buildPlan, laneLoad } from "./plan";
 import { windowsFor } from "./rates";
 import { emptyScenario } from "./scenario";
 import type { Window } from "./types";
@@ -126,6 +126,10 @@ describe("buildPlan", () => {
     };
     const summary = buildPlan(goblin, [], emptyScenario(now)).lanes.find((l) => l.lane === "builder");
     expect(summary).toMatchObject({ busy: 6, goblinBusy: 1, idle: 0 });
+    // The goblin is a seventh worker while he works: 7 of 7, and 6 of 6 once he is gone.
+    expect(summary && laneLoad(summary)).toEqual({ busy: 7, total: 7 });
+    const without = buildPlan(account, [], emptyScenario(now)).lanes.find((l) => l.lane === "builder");
+    expect(without && laneLoad(without)).toEqual({ busy: 6, total: 6 });
   });
 
   it("notices a boost running with nobody to use it", () => {

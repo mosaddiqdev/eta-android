@@ -1,5 +1,6 @@
 import { ClipboardPaste, Lock } from "lucide-react";
 import { useArtReady } from "../../../game/useArtReady";
+import { canImportOnOpen } from "../../../native/clipboardImport";
 import { boneGroup } from "../../../ui/Bone";
 import { ImportGuide } from "../../../ui/ImportGuide";
 import styles from "./ImportEmpty.module.css";
@@ -47,7 +48,11 @@ export function ImportScreen({ busy, error, onClipboard, onText, onSample, skele
           <ClipboardPaste size={20} aria-hidden="true" />
           Paste from clipboard
         </button>
-        <p className={styles.keys}>Or press Ctrl+V (⌘V on a Mac) anywhere on this page.</p>
+        <p className={styles.keys}>
+          {canImportOnOpen()
+            ? "Tip: add the Import village tile to your quick settings to import with one tap."
+            : "Or press Ctrl+V (⌘V on a Mac) anywhere on this page."}
+        </p>
       </div>
 
       <ImportGuide className={styles.guide} />

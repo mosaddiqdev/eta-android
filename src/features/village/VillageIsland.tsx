@@ -24,6 +24,7 @@ import { COPY } from "./copy";
 import { nextToFinish } from "./next";
 import { helperArtOf } from "./rows";
 import { shareText } from "./shareText";
+import { useClipboardImport } from "./useClipboardImport";
 import { type ImportIntent, useMyVillage } from "./useMyVillage";
 import { usePasteAnywhere } from "./usePasteAnywhere";
 import { useStatusTitle } from "./useStatusTitle";
@@ -79,6 +80,7 @@ function VillageScreen() {
   useSwipeTabs(panelsRef, TAB_IDS, tab, showTab, shown);
 
   // Only on the empty screen: once a village is open, a stray paste shouldn't replace it.
+  useClipboardImport(village.status !== "loading", village.importCopied);
   usePasteAnywhere(village.status === "empty" && !pasteOpen, village.importText);
 
   const earlierBy = useMemo(() => {

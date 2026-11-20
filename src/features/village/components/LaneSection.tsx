@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { useSettings } from "../../../settings/settings";
-import type { LaneSummary, PlannedUpgrade } from "../../../village/plan";
+import { type LaneSummary, laneLoad, type PlannedUpgrade } from "../../../village/plan";
 import { LANE_NAMES, laneKind } from "../format";
 import { idleSince } from "../idle";
 import { useIntro } from "../useIntro";
@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function LaneSection({ summary, upgrades, exportedAt, now, earlierBy, helperArt, onOpen }: Props) {
-  const { lane, capacity, busy, idle } = summary;
+  const { lane, busy, idle } = summary;
   const idleSlots = Math.min(idle ?? 0, 8);
   const { hideFinished } = useSettings();
   // Rows that are probably done are not counted as busy; the summary already leaves them out.
@@ -35,6 +35,8 @@ export function LaneSection({ summary, upgrades, exportedAt, now, earlierBy, hel
   // Rows ease in once, when the lane first shows, not again every time its tab is opened.
   const intro = useIntro();
 
+  const load = laneLoad(summary);
+
   return (
     <section
       id={`lane-${lane}`}
@@ -47,7 +49,7 @@ export function LaneSection({ summary, upgrades, exportedAt, now, earlierBy, hel
           <LaneIcon lane={lane} size={40} tile />
           {LANE_NAMES[lane]}
         </h2>
-        <p>{capacity === null ? `${busy + summary.goblinBusy} busy` : `${busy} of ${capacity} busy`}</p>
+        <p>{load ? `${load.busy} of ${load.total} busy` : `${busy + summary.goblinBusy} busy`}</p>
       </header>
       <ul className={styles.list} data-intro={intro}>
         {shown.map((u, index) => (

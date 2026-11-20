@@ -47,16 +47,21 @@ async function sync() {
   await EtaNotifications.schedule({ items: await plannedAlerts() });
 }
 
+/** Sets the alarms now, and resolves when they are set. For a page that closes right after (native/quickImport.ts). */
+export function syncNotificationsNow(): Promise<void> {
+  if (!canNotify()) return Promise.resolve();
+  queue = queue
+    .then(sync)
+    .then(markLaunched)
+    .catch(() => {});
+  return queue;
+}
+
 /** Sets the phone's alarms to match the saved villages and the settings. Safe to call often; calls close together become one. */
 export function syncNotifications() {
   if (!canNotify()) return;
   clearTimeout(waiting);
-  waiting = setTimeout(() => {
-    queue = queue
-      .then(sync)
-      .then(markLaunched)
-      .catch(() => {});
-  }, 500);
+  waiting = setTimeout(() => void syncNotificationsNow(), 500);
 }
 
 const LAUNCHED = "clasheta.notified";

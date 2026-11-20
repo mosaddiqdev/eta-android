@@ -128,6 +128,16 @@ portrait, and the upgrade it would save the most time on), and the Clock Tower i
 - Times come from the last import. A potion used after it isn't known, so paste again to bring them back in line.
 - Not checked on a device: Doze timing, the boot receiver, and how the large icon looks on each maker's skin.
 
+## Importing without the copy, open, paste dance
+
+Android 10 and newer let only the app in front, or the keyboard, read the clipboard, so nothing can watch for a copy in the background. Two things shorten the trip instead.
+- **Import when opened** (Settings, on by default). When the app comes to the front, `useClipboardImport` reads the clipboard. A new village export is imported and a "Updated #TAG" toast says so. Text that isn't a JSON object, text already saved, and text already looked at (a short fingerprint in `clasheta.lastClip`, so a village you forgot doesn't return) are skipped silently. Android 12 and newer show their own "pasted from clipboard" note when an app reads it.
+- **The "Import village" tile.** The player adds it once to the Quick Settings panel. A tap opens `EtaImportActivity`, a see-through screen over the game (its own task, out of the recent apps, no animation, transparent window and web view). It loads `quick-import.html`, whose script (`src/native/quickImport.ts`) reads the clipboard, saves the village with the same `withVillage` the village page uses, sets the alarms (`syncNotificationsNow`), shows a system toast ("#TAG imported", "already up to date", or why not) and closes the screen with `EtaImport.finish`. The game never leaves the front. The tile always imports and ignores the "Import when opened" switch. Android 14 needs a `PendingIntent` to start it. If ClashETA was open in the background, `reloadWhenVillagesChanged` (`src/native/app.ts`) reloads its page on return, because it did not see the new village. The clipboard is read natively in `onWindowFocusChanged` (the first moment the screen has focus) and handed to the page through `EtaImport.clipboard`; the web read with retries is only a fallback. `EtaImportActivity` overrides `setTheme`, because `BridgeActivity` would otherwise replace the see-through theme with its opaque one, and sets the window format to translucent. While the screen is up the game is paused by Android, like under any screen, so the import is kept short: the page is bare, and the game data loads while the clipboard is read.
+
+Cost: the tile is a service Android starts only while the panel is showing it (`ACTIVE_TILE`), and the import is a page loading once for about a second. Nothing runs in the background and nothing watches the clipboard. The notification alarms are one-shot `AlarmManager` entries with no service or wake lock. Setting battery use to Unrestricted doesn't make the app do more; it only stops phone makers' power managers from delaying or dropping the alarms. Settings tells players this.
+
+Not checked on a device: that the screen really is see-through (BridgeActivity sets its own opaque theme, which `EtaImportActivity` undoes in code), that Android draws no launch splash for it, and the clipboard read right after it opens on each maker's skin.
+
 ## The status bar
 
 A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
