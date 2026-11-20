@@ -69,7 +69,7 @@ export function Hero({ status, onStatus, coming }: Props) {
             <Problem
               tip
               title="If alerts ever don't arrive"
-              detail="Some phones stop apps they think are idle. Set ClashETA's battery use to No restrictions."
+              detail="Some phones stop apps they think are idle. Set ClashETA's battery use to No restrictions. It uses no extra battery, because the app does nothing in the background."
               action="Open battery settings"
               onAction={() => void EtaNotifications.openBatterySettings()}
             />

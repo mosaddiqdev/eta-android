@@ -29,9 +29,9 @@ interface Props {
  * moment it changes, so there is no Save button and nothing to lose by closing it. The body only exists while it is open,
  * so what it shows about saved villages and dates is read fresh each time.
  *
- * The groups run in the order you reach for them: how it looks (theme, clock), how it behaves (page it opens on,
- * My village, touch), then what the app keeps (saved data), and About last. Touch only shows where the device can
- * buzz.
+ * The groups run in the order you reach for them: look and feel (theme, clock, touch), the village (page it opens on,
+ * finished rows), notifications and import (Android only), then what the app keeps (saved data), and About last.
+ * Vibration only shows where the device can buzz.
  */
 export function SettingsSheet({ open, onClose, onCredits, onNotifications }: Props) {
   const sheet = useSheetDialog(open);
@@ -90,28 +90,30 @@ function Body({
         </button>
       </header>
 
-      <Group title="Appearance">
+      <Group title="Look and feel">
         <Segmented
           label="Theme"
           value={settings.theme}
           options={themes}
           onChange={(theme) => updateSettings({ theme })}
         />
-      </Group>
-
-      <Group title="Time">
         <Segmented
           label="Clock"
           value={settings.clock}
           options={clocks}
           onChange={(clock) => updateSettings({ clock })}
         />
-        <p className={styles.note}>
-          Finish times read like <strong>Tomorrow, {formatTime(now, settings.clock)}</strong>.
-        </p>
+        {canVibrate() && (
+          <Switch
+            label="Vibrate on tap"
+            hint="A tiny buzz when you change a count or flip a switch."
+            checked={settings.haptics}
+            onChange={(haptics) => updateSettings({ haptics })}
+          />
+        )}
       </Group>
 
-      <Group title="Start on">
+      <Group title="Village">
         <Segmented
           label="Page that opens first"
           value={settings.startOn}
@@ -119,51 +121,25 @@ function Body({
           onChange={(startOn) => updateSettings({ startOn })}
         />
         <p className={styles.note}>{START_NOTE[settings.startOn]}</p>
-      </Group>
-
-      <Group title="My village">
         <Switch
           label="Hide finished upgrades"
-          hint="Leaves out rows that are probably done, so the list shows only what is still running."
+          hint="Leaves out rows that are probably done."
           checked={settings.hideFinished}
           onChange={(hideFinished) => updateSettings({ hideFinished })}
         />
       </Group>
 
-      {canImportOnOpen() && (
-        <Group title="Import">
-          <Switch
-            label="Import when opened"
-            hint="When you open ClashETA with a new village copied, it is imported for you. No paste needed."
-            checked={settings.autoImport}
-            onChange={(autoImport) => updateSettings({ autoImport })}
-          />
-          <p className={styles.note}>
-            Faster still: add the <strong>Import village</strong> tile to your quick settings panel. One tap
-            there imports what you copied and takes you back to Clash.
-          </p>
-          <p className={styles.note}>
-            Light on your phone: the tile and these alerts only run when you tap or when one is due. Nothing
-            watches in the background. Setting ClashETA’s battery use to Unrestricted costs nothing extra and
-            keeps alerts on time.
-          </p>
-        </Group>
-      )}
-
-      {canVibrate() && (
-        <Group title="Touch">
-          <Switch
-            label="Vibrate on tap"
-            hint="A tiny buzz when you change a count, flip a switch or pick a tab or option."
-            checked={settings.haptics}
-            onChange={(haptics) => updateSettings({ haptics })}
-          />
-        </Group>
-      )}
-
-      {canNotify() && (
-        <Group title="Notifications">
-          <Notifications onOpen={onNotifications} />
+      {(canNotify() || canImportOnOpen()) && (
+        <Group title="Notifications and import">
+          {canNotify() && <Notifications onOpen={onNotifications} />}
+          {canImportOnOpen() && (
+            <Switch
+              label="Import when opened"
+              hint="Imports a new village you copied when you open the app."
+              checked={settings.autoImport}
+              onChange={(autoImport) => updateSettings({ autoImport })}
+            />
+          )}
         </Group>
       )}
 

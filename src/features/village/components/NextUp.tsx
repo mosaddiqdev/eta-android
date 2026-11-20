@@ -1,7 +1,7 @@
 import { TriangleAlert, X } from "lucide-react";
 import { confirm } from "../../../ui/haptics";
 import { scrollFade } from "../../../ui/scrollFade";
-import type { Plan } from "../../../village/plan";
+import { laneLoad, type Plan } from "../../../village/plan";
 import type { Lane } from "../../../village/types";
 import { clock, LANE_NAMES, laneKind, TILE_NAMES } from "../format";
 import { nextToFinish } from "../next";
@@ -21,6 +21,11 @@ interface Props {
   planning: number;
   onJump: (lane: Lane) => void;
   onReset: () => void;
+}
+
+function tileValue(l: Plan["lanes"][number]) {
+  const load = laneLoad(l);
+  return load ? `${load.busy}/${load.total}` : l.busy + l.goblinBusy;
 }
 
 export function NextUp({ plan, now, planning, onJump, onReset }: Props) {
@@ -76,9 +81,7 @@ export function NextUp({ plan, now, planning, onJump, onReset }: Props) {
             >
               <LaneIcon lane={l.lane} size={22} />
               <span className={styles.tileLabel}>{TILE_NAMES[l.lane]}</span>
-              <span className={styles.tileValue}>
-                {l.capacity === null ? l.busy + l.goblinBusy : `${l.busy}/${l.capacity}`}
-              </span>
+              <span className={styles.tileValue}>{tileValue(l)}</span>
             </button>
           </li>
         ))}
