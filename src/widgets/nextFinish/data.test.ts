@@ -19,10 +19,13 @@ describe("Next finish widget data", () => {
     expect(times[0]).toBeGreaterThan(now * 1000);
   });
 
-  it("carries the clock setting and the worker counts", () => {
+  it("carries the clock setting and every kind of worker, Builder Base included", () => {
     const payload = nextFinishPayload([village], "24");
     expect(payload.clock).toBe("24");
-    expect(payload.villages[0].capacity.builder).toBe(account.capacity.builder);
+    const lanes = payload.villages[0].lanes;
+    expect(lanes.map((l) => l.lane)).toEqual(["builder", "lab", "pet", "bbBuilder", "bbLab"]);
+    expect(lanes[0].capacity).toBe(account.capacity.builder);
+    expect(lanes[3].name).toBe("Builder Base");
   });
 
   it("leaves out what has probably finished", () => {

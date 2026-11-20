@@ -22,29 +22,35 @@ final class NextFinishData {
         boolean goblin;
     }
 
+    /** One kind of worker: Builders, Lab, Pets, Builder Base, Star Lab. */
+    static final class Lane {
+        String key;
+        String name;
+        // Regular workers, or -1 when the export doesn't say.
+        int capacity = -1;
+        String icon;
+    }
+
     static final class Village {
         String tag;
-        // How many regular workers each lane has, or -1 when the export doesn't say.
-        int builder = -1;
-        int lab = -1;
-        int pet = -1;
+        final List<Lane> lanes = new ArrayList<>();
         final List<Upgrade> upgrades = new ArrayList<>();
 
-        int capacity(String lane) {
-            return lane.equals("builder") ? builder : lane.equals("lab") ? lab : lane.equals("pet") ? pet : -1;
-        }
-
-        /** Workers busy now and how many there are. A Goblin is a worker only while he works, as on the village page. */
-        int[] load(String lane, long now) {
+        /**
+         * What the summary tile says for a kind of worker, as on the village page: busy of how many, with a Goblin as a
+         * worker only while he works, or just how many are busy when the export doesn't give the count. Null when the
+         * village has none of that kind and nothing running there, so there is nothing to show.
+         */
+        String value(Lane lane, long now) {
             int regular = 0;
             int goblin = 0;
             for (Upgrade u : upgrades) {
-                if (u.at <= now || !u.lane.equals(lane)) continue;
+                if (u.at <= now || !u.lane.equals(lane.key)) continue;
                 if (u.goblin) goblin++;
                 else regular++;
             }
-            int capacity = capacity(lane);
-            return capacity < 0 ? null : new int[] {regular + goblin, capacity + goblin};
+            if (lane.capacity < 0) return regular + goblin > 0 ? String.valueOf(regular + goblin) : null;
+            return (regular + goblin) + "/" + (lane.capacity + goblin);
         }
     }
 
@@ -80,11 +86,15 @@ final class NextFinishData {
     private static Village village(JSONObject json) throws JSONException {
         Village village = new Village();
         village.tag = json.optString("tag");
-        JSONObject capacity = json.optJSONObject("capacity");
-        if (capacity != null) {
-            village.builder = capacity.optInt("builder", -1);
-            village.lab = capacity.optInt("lab", -1);
-            village.pet = capacity.optInt("pet", -1);
+        JSONArray lanes = json.optJSONArray("lanes");
+        for (int i = 0; lanes != null && i < lanes.length(); i++) {
+            JSONObject item = lanes.getJSONObject(i);
+            Lane lane = new Lane();
+            lane.key = item.optString("lane");
+            lane.name = item.optString("name");
+            lane.capacity = item.isNull("capacity") ? -1 : item.optInt("capacity", -1);
+            lane.icon = item.isNull("icon") ? null : item.optString("icon");
+            village.lanes.add(lane);
         }
         JSONArray upgrades = json.optJSONArray("upgrades");
         for (int i = 0; upgrades != null && i < upgrades.length(); i++) {

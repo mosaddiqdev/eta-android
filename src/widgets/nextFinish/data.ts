@@ -1,3 +1,5 @@
+import { laneKind, TILE_NAMES } from "../../features/village/format";
+import { artUrl } from "../../game/art";
 import { imageUrl } from "../../game/images";
 import type { Village } from "../../notifications/compose";
 import type { Clock } from "../../settings/settings";
@@ -13,8 +15,15 @@ export interface NextFinishPayload {
   clock: Clock;
   villages: {
     tag: string;
-    /** Regular workers per lane, null where the export doesn't say. Goblins are not counted. */
-    capacity: { builder: number | null; lab: number | null; pet: number | null };
+    /** The kinds of worker, as the village page's summary tiles list them, each with the page's own icon for it. */
+    lanes: {
+      lane: Lane;
+      name: string;
+      /** Regular workers, null where the export doesn't say. Goblins are not counted. */
+      capacity: number | null;
+      /** Path in the app's assets, or null when there is no picture. */
+      icon: string | null;
+    }[];
     upgrades: {
       /** Unix milliseconds. */
       at: number;
@@ -46,16 +55,30 @@ const assetPath = (key: string | null) => {
   return url ? `public${url}` : null;
 };
 
+const LANES: Lane[] = ["builder", "lab", "pet", "bbBuilder", "bbLab"];
+
+/** The same picture the village page's LaneIcon shows: our own signage for the home lanes, the game's for the Builder Base. */
+function laneIcon(lane: Lane): string | null {
+  if (lane === "bbBuilder") return assetPath("building-builderBase/builder_hall");
+  if (lane === "bbLab") return assetPath("building-builderBase/star_laboratory");
+  try {
+    return `public${artUrl(`lane/${laneKind(lane)}`)}`;
+  } catch {
+    return null;
+  }
+}
+
 export function nextFinishPayload(villages: Village[], clock: Clock): NextFinishPayload {
   return {
     clock,
     villages: villages.map(({ account, plan }) => ({
       tag: account.tag,
-      capacity: {
-        builder: account.capacity.builder,
-        lab: account.capacity.lab,
-        pet: account.capacity.pet,
-      },
+      lanes: LANES.map((lane) => ({
+        lane,
+        name: TILE_NAMES[lane],
+        capacity: account.capacity[lane],
+        icon: laneIcon(lane),
+      })),
       upgrades: plan.upgrades
         .filter((u) => !u.likelyDone)
         .sort((a, b) => a.finishAt - b.finishAt)
