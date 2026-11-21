@@ -46,9 +46,9 @@ export function AccountBar({
           <span className={styles.tag} data-named={nickname ? "" : undefined}>
             {villageLabel({ tag, nickname })}
           </span>
+          {nickname && <span className={styles.sub}>{tag}</span>}
           <span className={styles.age} data-old={old}>
             {old && <TriangleAlert size={14} aria-hidden="true" />}
-            {nickname && <span className={styles.mono}>{tag} · </span>}
             {ago(age)}
           </span>
         </div>
