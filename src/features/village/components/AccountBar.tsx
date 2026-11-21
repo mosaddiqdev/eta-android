@@ -43,10 +43,12 @@ export function AccountBar({
       <div className={styles.who}>
         <VillageCrest townHall={townHall} size="lg" />
         <div className={styles.text}>
-          <span className={styles.tag} data-named={nickname ? "" : undefined}>
-            {villageLabel({ tag, nickname })}
+          <span className={styles.line}>
+            <span className={styles.tag} data-named={nickname ? "" : undefined}>
+              {villageLabel({ tag, nickname })}
+            </span>
+            {nickname && <span className={styles.sub}>{tag}</span>}
           </span>
-          {nickname && <span className={styles.sub}>{tag}</span>}
           <span className={styles.age} data-old={old}>
             {old && <TriangleAlert size={14} aria-hidden="true" />}
             {ago(age)}

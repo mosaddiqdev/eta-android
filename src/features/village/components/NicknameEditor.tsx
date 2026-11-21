@@ -5,7 +5,7 @@ import { cleanNickname, NICKNAME_MAX, type VillageSummary } from "../villages";
 import styles from "./NicknameEditor.module.css";
 import { VillageCrest } from "./VillageCrest";
 
-const SUGGESTIONS = ["Main", "Alt", "Farm", "War", "Clan games"];
+const SUGGESTIONS = ["Main", "Alt", "Farm"];
 
 interface Props {
   village: VillageSummary;

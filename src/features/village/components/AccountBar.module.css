@@ -15,6 +15,8 @@
 }
 
 .text {
+  container-type: inline-size;
+  flex: 1;
   display: grid;
   gap: 0;
   min-width: 0;
@@ -37,15 +39,30 @@
   line-height: 1.25;
 }
 
-/* The tag under a nickname: its own short line, so the row never grows wide enough to push Update below it. */
+/* A nickname leads and the tag trails it on the same line, as a quiet caption. A phone has no room for both beside
+   Update, and a cut-off tag is worse than none, so the tag only appears where the whole of it fits. It is always in the
+   village menu. */
+.line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .sub {
+  display: none;
   overflow: hidden;
   color: var(--text-soft);
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@container (min-width: 15rem) {
+  .sub {
+    display: inline;
+  }
 }
 
 .age {
