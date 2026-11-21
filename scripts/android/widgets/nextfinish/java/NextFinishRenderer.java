@@ -97,7 +97,7 @@ final class NextFinishRenderer {
             if (size != Size.WIDE)
                 tint(views, R.id.eta_nf_day, theme, forced, light.lane(upgrade.lane), dark.lane(upgrade.lane));
             if (size == Size.LARGE) {
-                String where = data.villages.size() > 1 ? "Next to finish · " + next.village.tag : "Next to finish";
+                String where = data.villages.size() > 1 ? "Next to finish · " + (next.village.name.isEmpty() ? next.village.tag : next.village.name) : "Next to finish";
                 views.setTextViewText(R.id.eta_nf_label, where);
                 tint(views, R.id.eta_nf_label, theme, forced, light.lane(upgrade.lane), dark.lane(upgrade.lane));
             }
