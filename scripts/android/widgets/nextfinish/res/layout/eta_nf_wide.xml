@@ -1,26 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 4 x 1: one line, the picture, the name and the finish time. -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/eta_nf_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/eta_nf_bg">
-
-    <!-- The lit edges and colour bleed of the glass, drawn by NextFinishGlass to the widget's size. -->
-    <ImageView
-        android:id="@+id/eta_nf_glass"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no"
-        android:scaleType="fitXY" />
-
-    <LinearLayout
-        android:id="@+id/eta_nf_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
+    android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    android:background="@drawable/eta_nf_bg">
     <ImageView
         android:id="@+id/eta_nf_art"
         android:layout_width="48dp"
@@ -87,4 +74,3 @@
             android:textSize="17sp" />
     </LinearLayout>
 </LinearLayout>
-</FrameLayout>
