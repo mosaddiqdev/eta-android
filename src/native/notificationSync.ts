@@ -1,39 +1,17 @@
-import { readVillages } from "../features/village/villages";
-import { type Alert, composeAlerts, type Village } from "../notifications/compose";
+import { type Alert, composeAlerts } from "../notifications/compose";
 import { getSettings } from "../settings/settings";
-import { parseExport } from "../village/parse";
-import { buildPlan } from "../village/plan";
-import { emptyScenario } from "../village/scenario";
 import { canNotify, EtaNotifications } from "./notifications";
+import { savedPlans } from "./savedPlans";
 
 // Runs one at a time, newest last, so an import and a settings change close together can't leave the older list armed.
 let queue: Promise<void> = Promise.resolve();
 let waiting: ReturnType<typeof setTimeout> | undefined;
 
-async function villages(): Promise<Village[]> {
-  const { gameCatalog } = await import("../game/catalog");
-  const now = Math.floor(Date.now() / 1000);
-  const found: Village[] = [];
-  for (const saved of readVillages().villages) {
-    try {
-      const { account, warnings } = parseExport(saved.raw, gameCatalog);
-      found.push({
-        account,
-        plan: buildPlan(account, warnings, emptyScenario(now)),
-        nickname: saved.nickname,
-      });
-    } catch {
-      // A saved village that no longer reads is dropped by the village page; it just gets no notifications here.
-    }
-  }
-  return found;
-}
-
 /** What the phone would be told right now: the settings applied to every saved village. Also what Settings previews. */
 export async function plannedAlerts(): Promise<Alert[]> {
   const settings = getSettings();
   return composeAlerts(
-    await villages(),
+    await savedPlans(),
     {
       off: settings.notifyOff,
       sound: settings.notifySound,

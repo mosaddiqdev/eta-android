@@ -2,6 +2,7 @@ import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { VILLAGES_CHANGED, VILLAGES_KEY } from "../features/village/villages";
 import { getSettings, watchSettings } from "../settings/settings";
+import { syncWidgets } from "../widgets/sync";
 import { watchClipboardImport } from "./clipboardImport";
 import { showInsetsDebug } from "./debug";
 import { releaseLaunchSplash } from "./launchSplash";
@@ -42,12 +43,18 @@ export function startApp() {
   applyNativeTheme(getSettings().theme);
   // The alarms outlive the app but not a restart or an update, and the saved villages can change while it is closed, so
   // every start sets them again once the page is up.
-  void releaseLaunchSplash().then(syncNotificationsOnLaunch);
+  void releaseLaunchSplash().then(() => {
+    syncNotificationsOnLaunch();
+    syncWidgets();
+  });
   watchClipboardImport();
   window.addEventListener(VILLAGES_CHANGED, syncNotifications);
+  window.addEventListener(VILLAGES_CHANGED, syncWidgets);
   reloadWhenVillagesChanged();
   watchSettings((next, previous) => {
     if (next.theme !== previous.theme) applyNativeTheme(next.theme);
+    // The widgets read the clock and the theme too.
+    if (next.theme !== previous.theme || next.clock !== previous.clock) syncWidgets();
     // Everything the notifications are made from. Theme, clock and the rest don't change them.
     const fields = ["notify", "notifyOff", "notifySound", "quietHours", "quietFrom", "quietTo"] as const;
     const changed = fields.some((field) => JSON.stringify(next[field]) !== JSON.stringify(previous[field]));

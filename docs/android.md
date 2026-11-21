@@ -138,6 +138,20 @@ Cost: the tile is a service Android starts only while the panel is showing it (`
 
 Not checked on a device: that the screen really is see-through (BridgeActivity sets its own opaque theme, which `EtaImportActivity` undoes in code), that Android draws no launch splash for it, and the clipboard read right after it opens on each maker's skin.
 
+## Home-screen widgets
+
+Each widget is a folder, so none grows into one big file. The native side is `scripts/android/widgets/<widget>/` (`java/` with one file per concern, `res/`, `manifest.xml`) and the page side is `src/widgets/<widget>/`. `scripts/android-widgets.mjs` copies every folder into the generated project and registers the plugins, so adding a widget touches nothing else. `common/` holds what they share: `EtaWidgetsPlugin` (the page sends `{widget, data}`; the plugin keeps it and calls `<Widget>Provider.refresh`) and `EtaWidgetTheme` (the app's colours, following the app's Auto / Dark / Light). The README in `widgets/` has the rules.
+
+**Next finish** (`nextfinish/`, `src/widgets/nextFinish/`). The upgrade that finishes next, across all saved villages, in the village page's look (the same tokens, lane colours and game pictures, the system corner radius on Android 12+). Three layouts by the size the home screen gives it: 4×2 (picture, name, level, day and time, and Builders / Lab / Pets as busy of how many), 2×2 and 4×1. Tapping it opens the app.
+- **No ticking.** It shows a day and a clock time ("Tomorrow, 10:05 PM"), worded as on the village page, with the clock following the app's setting. Nothing counts down, so nothing wakes up every second or minute and `updatePeriodMillis` is 0.
+- **When it redraws:** when the page sends new data (a paste, the tile, a settings change of clock or theme, app start), when the next upgrade finishes (`NextFinishSchedule`, one alarm, replaced on every draw, so it moves on to the one after), at local midnight (so "Tomorrow" becomes "Today"), and when the time zone, clock or language changes.
+- **Data.** The page sends every running upgrade for every village with the words already made (`data.ts`). The phone chooses the next one and drops what has finished each time it draws (`NextFinishData`), and counts busy workers per lane the way the village page does, a Goblin as an extra worker while he works. So it stays right between imports with the app closed.
+- **Pictures** come from the app's own assets, shrunk to what a tile shows (widgets have a memory limit on the home screen).
+- **Theme.** Auto follows the phone and flips with it (Android 12+ `setColorInt` with a light and a dark colour, and night-aware drawables); a forced Dark or Light uses fixed ones. The picker preview is the real 4×2 layout with sample words.
+- **Sizes** are chosen from the size options on every Android version, not the Android 12 size map, which keeps one code path.
+
+Not checked on a device: how each launcher's cells map to the three sizes, the picker preview, and the pictures' memory use on low-end phones.
+
 ## The status bar
 
 A fade in the page colour sits under the status bar (`body::before` in `src/styles/base.css`); it is not black, because black on a dark page shows as a darker band.
