@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's colours (src/styles/tokens.css). Plain names follow the phone's light or dark; the dark_ and light_ ones are for
+     when the app's own Auto / Dark / Light says otherwise. -->
+<resources>
+    <color name="eta_nf_raised">#FFFAFAF9</color>
+    <color name="eta_nf_raised2">#FFE4E4E2</color>
+    <color name="eta_nf_line">#FFCFCFCC</color>
+    <color name="eta_nf_text">#FF151515</color>
+    <color name="eta_nf_soft">#FF646463</color>
+    <color name="eta_nf_builder">#FF0E7BAD</color>
+    <color name="eta_nf_lab">#FFA31782</color>
+    <color name="eta_nf_pet">#FF916600</color>
+
+    <color name="eta_nf_light_raised">#FFFAFAF9</color>
+    <color name="eta_nf_light_raised2">#FFE4E4E2</color>
+    <color name="eta_nf_light_line">#FFCFCFCC</color>
+    <color name="eta_nf_dark_raised">#FF1A1A1A</color>
+    <color name="eta_nf_dark_raised2">#FF232323</color>
+    <color name="eta_nf_dark_line">#FF333333</color>
+</resources>

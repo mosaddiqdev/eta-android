@@ -1,6 +1,7 @@
 import { registerPlugin } from "@capacitor/core";
 import { readVillages, withVillage, writeVillages } from "../features/village/villages";
 import { parseExport } from "../village/parse";
+import { syncWidgetsNow } from "../widgets/sync";
 import { readClipboardSoon } from "./clipboardImport";
 import { syncNotificationsNow } from "./notificationSync";
 
@@ -33,7 +34,7 @@ async function importCopied(): Promise<string> {
   } catch {
     return "That isn’t a village export. In Clash, copy it again.";
   }
-  await syncNotificationsNow();
+  await Promise.all([syncNotificationsNow(), syncWidgetsNow()]);
   return `${tag} imported`;
 }
 

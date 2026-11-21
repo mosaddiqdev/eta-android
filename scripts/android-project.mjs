@@ -10,6 +10,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { splashDrawables, statusIcon } from "./android-splash.mjs";
+import { installWidgets, widgetPlugins } from "./android-widgets.mjs";
 
 const ANDROID = "android";
 const RES = path.join(ANDROID, "app", "src", "main", "res");
@@ -51,6 +52,7 @@ async function mainActivity() {
   if (!file) fail("MainActivity.java not found. Did the Capacitor template change?");
   const pkg = /^package\s+([\w.]+);/m.exec(await readFile(file, "utf8"))?.[1];
   if (!pkg) fail(`No package line in ${file}.`);
+  const widgets = (await widgetPlugins()).map((name) => `        registerPlugin(${name}.class);\n`).join("");
   await writeFile(
     file,
     `package ${pkg};
@@ -87,7 +89,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(EtaSplashPlugin.class);
         registerPlugin(EtaThemePlugin.class);
         registerPlugin(EtaNotificationsPlugin.class);
-
+${widgets}
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         // The page has fixed bars (header, result dock) that Android's stretch effect would warp along with the content,
@@ -443,6 +445,12 @@ if (!existsSync(ANDROID)) run(["cap", "add", "android"]);
 const activity = await mainActivity();
 await theme();
 await notifications(activity);
+await installWidgets({
+  dir: activity.dir,
+  pkg: activity.pkg,
+  res: RES,
+  manifestFile: path.join(ANDROID, "app", "src", "main", "AndroidManifest.xml"),
+});
 await icons();
 await version();
 run(["cap", "sync", "android"]);

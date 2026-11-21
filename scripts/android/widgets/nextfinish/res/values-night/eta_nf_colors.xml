@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="eta_nf_raised">#FF1A1A1A</color>
+    <color name="eta_nf_raised2">#FF232323</color>
+    <color name="eta_nf_line">#FF333333</color>
+    <color name="eta_nf_text">#FFECECEC</color>
+    <color name="eta_nf_soft">#FF9B9B9B</color>
+    <color name="eta_nf_builder">#FF4ABBE8</color>
+    <color name="eta_nf_lab">#FFE660C6</color>
+    <color name="eta_nf_pet">#FFE3BE68</color>
+</resources>

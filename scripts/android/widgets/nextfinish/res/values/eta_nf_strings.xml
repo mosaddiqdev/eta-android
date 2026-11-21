@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eta_nf_label">Next finish</string>
+    <string name="eta_nf_description">The next upgrade to finish, as a day and a time.</string>
+</resources>
