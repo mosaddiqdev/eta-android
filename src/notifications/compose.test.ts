@@ -109,6 +109,13 @@ describe("composeAlerts", () => {
     expect(alerts.every((a) => !a.body.includes(first.account.tag))).toBe(true);
   });
 
+  it("uses the nickname instead of the tag when villages are named", () => {
+    const named = { ...first, nickname: "Main" };
+    const both = composeAlerts([named, village(two)], all, first.account.exportedAt * 1000);
+    expect(both.some((a) => a.body.includes("Main"))).toBe(true);
+    expect(both.every((a) => !a.body.includes(first.account.tag))).toBe(true);
+  });
+
   it("gives every alert the game sound that fits it", () => {
     for (const a of alerts) expect(["building", "hero", "lab"]).toContain(a.cue);
     expect(alerts.filter((a) => a.kind === "lab").every((a) => a.cue === "lab")).toBe(true);

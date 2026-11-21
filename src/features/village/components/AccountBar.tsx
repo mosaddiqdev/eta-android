@@ -3,13 +3,14 @@ import { useRef, useState } from "react";
 import { Disclosure } from "../../../ui/Disclosure";
 import type { ParseWarning } from "../../../village/types";
 import { ago } from "../format";
-import type { VillageSummary } from "../villages";
+import { type VillageSummary, villageLabel } from "../villages";
 import styles from "./AccountBar.module.css";
 import { VillageCrest } from "./VillageCrest";
 import { VillageMenu } from "./VillageMenu";
 
 interface Props {
   tag: string;
+  nickname?: string;
   townHall: number | null;
   age: number;
   now: number;
@@ -20,9 +21,20 @@ interface Props {
   onSwitch: (tag: string) => void;
   onAdd: () => void;
   onForget: () => void;
+  onRename: (tag: string, text: string) => void;
 }
 
-export function AccountBar({ tag, townHall, age, now, warnings, villages, busy, ...actions }: Props) {
+export function AccountBar({
+  tag,
+  nickname,
+  townHall,
+  age,
+  now,
+  warnings,
+  villages,
+  busy,
+  ...actions
+}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const split = useRef<HTMLDivElement>(null);
   const old = age > 3600;
@@ -31,9 +43,12 @@ export function AccountBar({ tag, townHall, age, now, warnings, villages, busy, 
       <div className={styles.who}>
         <VillageCrest townHall={townHall} size="lg" />
         <div className={styles.text}>
-          <span className={styles.tag}>{tag}</span>
+          <span className={styles.tag} data-named={nickname ? "" : undefined}>
+            {villageLabel({ tag, nickname })}
+          </span>
           <span className={styles.age} data-old={old}>
             {old && <TriangleAlert size={14} aria-hidden="true" />}
+            {nickname && <span className={styles.mono}>{tag} · </span>}
             {ago(age)}
           </span>
         </div>
@@ -76,6 +91,7 @@ export function AccountBar({ tag, townHall, age, now, warnings, villages, busy, 
         onSwitch={actions.onSwitch}
         onAdd={actions.onAdd}
         onForget={actions.onForget}
+        onRename={actions.onRename}
       />
 
       {warnings.length > 0 && (

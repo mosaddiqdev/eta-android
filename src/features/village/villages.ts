@@ -13,9 +13,22 @@ export interface SavedVillage {
   /** Kept beside the export so the village list can draw its picture without parsing every export. */
   townHall: number | null;
   exportedAt: number;
+  /** What the player calls this village ("Main", "Alt"), so two accounts aren't told apart by their tags alone. */
+  nickname?: string;
 }
 
-export type VillageSummary = Pick<SavedVillage, "tag" | "townHall" | "exportedAt">;
+export type VillageSummary = Pick<SavedVillage, "tag" | "townHall" | "exportedAt" | "nickname">;
+
+export const NICKNAME_MAX = 20;
+
+/** A nickname as it is kept: spaces tidied, cut to length, and nothing at all when it is empty. */
+export function cleanNickname(text: string): string | undefined {
+  const tidy = text.replace(/\s+/g, " ").trim().slice(0, NICKNAME_MAX).trim();
+  return tidy || undefined;
+}
+
+/** What a village is called on screen: its nickname, or its tag until it has one. */
+export const villageLabel = (v: { tag: string; nickname?: string }) => v.nickname ?? v.tag;
 
 export interface SavedVillages {
   active: string | null;
@@ -35,13 +48,28 @@ export function withVillage(
   raw: string,
   savedAt: number,
 ): SavedVillages {
-  const entry = savedVillage(account, raw, savedAt);
+  // A new export of a village the player already named keeps its name.
+  const nickname = saved.villages.find((v) => v.tag === account.tag)?.nickname;
+  const entry = { ...savedVillage(account, raw, savedAt), ...(nickname && { nickname }) };
   const known = saved.villages.some((v) => v.tag === account.tag);
   return {
     active: account.tag,
     villages: known
       ? saved.villages.map((v) => (v.tag === account.tag ? entry : v))
       : [...saved.villages, entry],
+  };
+}
+
+/** `saved` with this village's nickname set, or cleared when `text` is empty. */
+export function withNickname(saved: SavedVillages, tag: string, text: string): SavedVillages {
+  const nickname = cleanNickname(text);
+  return {
+    ...saved,
+    villages: saved.villages.map((v) => {
+      if (v.tag !== tag) return v;
+      const { nickname: _old, ...rest } = v;
+      return nickname ? { ...rest, nickname } : rest;
+    }),
   };
 }
 
@@ -53,7 +81,8 @@ function isSavedVillage(value: unknown): value is SavedVillage {
     typeof v.raw === "string" &&
     typeof v.savedAt === "number" &&
     typeof v.exportedAt === "number" &&
-    (v.townHall === null || typeof v.townHall === "number")
+    (v.townHall === null || typeof v.townHall === "number") &&
+    (v.nickname === undefined || typeof v.nickname === "string")
   );
 }
 
