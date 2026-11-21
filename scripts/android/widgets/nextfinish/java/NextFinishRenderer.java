@@ -40,6 +40,22 @@ final class NextFinishRenderer {
         for (int id : ids) views.setViewVisibility(id, on ? View.VISIBLE : View.GONE);
     }
 
+    /** The colour the glass takes in: the next upgrade's lane, or the builders' cyan when nothing is running. */
+    private static int accentOf(NextFinishData data, long now, EtaWidgetTheme theme) {
+        NextFinishData.Pick next = data.next(now);
+        return next == null ? theme.builder : theme.lane(next.upgrade.lane);
+    }
+
+    // The widget's real size in dp: its narrowest width and tallest height upright, the other way round when the phone is on its side.
+    private static android.graphics.Bitmap glass(Context context, Bundle options, EtaWidgetTheme theme, int accent) {
+        boolean upright = context.getResources().getConfiguration().orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+        float width = options.getInt(upright ? AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH : AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 250);
+        float height = options.getInt(upright ? AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT : AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
+        float density = context.getResources().getDisplayMetrics().density;
+        float radius = context.getResources().getDimension(R.dimen.eta_nf_radius);
+        return NextFinishGlass.draw(width, height, density, radius, theme.dark, accent);
+    }
+
     static RemoteViews render(Context context, Bundle options, NextFinishData data, long now) {
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
         int height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
@@ -60,6 +76,7 @@ final class NextFinishRenderer {
             !forced ? R.drawable.eta_nf_bg : theme.dark ? R.drawable.eta_nf_bg_dark : R.drawable.eta_nf_bg_light);
         views.setInt(R.id.eta_nf_art, "setBackgroundResource",
             !forced ? R.drawable.eta_nf_tile : theme.dark ? R.drawable.eta_nf_tile_dark : R.drawable.eta_nf_tile_light);
+        views.setImageViewBitmap(R.id.eta_nf_glass, glass(context, options, theme, accentOf(data, now, theme)));
         tint(views, R.id.eta_nf_name, theme, forced, light.text, dark.text);
         tint(views, R.id.eta_nf_time, theme, forced, light.text, dark.text);
         tint(views, R.id.eta_nf_level, theme, forced, light.soft, dark.soft);
