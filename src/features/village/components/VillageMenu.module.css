@@ -86,8 +86,46 @@
   transition: background-color 0.15s var(--ease);
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .village {
+  flex: 1;
+  min-width: 0;
   min-height: 4.25rem;
+}
+
+/* Beside the row, not inside it: switching and naming are different taps, each with a 44px target. */
+.rename {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease);
+}
+
+.rename:active {
+  background: var(--raised-2);
+}
+
+@media (hover: hover) {
+  .rename:hover {
+    background: var(--raised-2);
+    color: var(--text);
+  }
+}
+
+.mono {
+  font-family: var(--font-mono);
 }
 
 .village[aria-current="true"] {
@@ -109,7 +147,15 @@
   white-space: nowrap;
 }
 
+/* A nickname is a name, so it is not set in the tag's monospace. */
+.tag[data-named] {
+  font-family: inherit;
+}
+
 .age {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-soft);
   font-size: 0.8125rem;
 }

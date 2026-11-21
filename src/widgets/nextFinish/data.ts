@@ -15,6 +15,8 @@ export interface NextFinishPayload {
   clock: Clock;
   villages: {
     tag: string;
+    /** What the player calls it, or empty. The widget shows it in place of the tag. */
+    name: string;
     /** The kinds of worker, as the village page's summary tiles list them, each with the page's own icon for it. */
     lanes: {
       lane: Lane;
@@ -71,8 +73,9 @@ function laneIcon(lane: Lane): string | null {
 export function nextFinishPayload(villages: Village[], clock: Clock): NextFinishPayload {
   return {
     clock,
-    villages: villages.map(({ account, plan }) => ({
+    villages: villages.map(({ account, plan, nickname }) => ({
       tag: account.tag,
+      name: nickname ?? "",
       lanes: LANES.map((lane) => ({
         lane,
         name: TILE_NAMES[lane],

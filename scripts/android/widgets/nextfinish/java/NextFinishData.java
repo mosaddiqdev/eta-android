@@ -33,6 +33,7 @@ final class NextFinishData {
 
     static final class Village {
         String tag;
+        String name;
         final List<Lane> lanes = new ArrayList<>();
         final List<Upgrade> upgrades = new ArrayList<>();
 
@@ -86,6 +87,7 @@ final class NextFinishData {
     private static Village village(JSONObject json) throws JSONException {
         Village village = new Village();
         village.tag = json.optString("tag");
+        village.name = json.optString("name");
         JSONArray lanes = json.optJSONArray("lanes");
         for (int i = 0; lanes != null && i < lanes.length(); i++) {
             JSONObject item = lanes.getJSONObject(i);

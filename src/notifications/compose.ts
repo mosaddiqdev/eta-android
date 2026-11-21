@@ -29,6 +29,8 @@ export interface QuietHours {
 
 export interface Village {
   account: Account;
+  /** What the player calls this village. With several saved, it says which one a notification is about. */
+  nickname?: string;
   plan: Plan;
 }
 
@@ -143,16 +145,17 @@ function towerReady(account: Account, many: boolean, tag: string) {
 export function composeAlerts(villages: Village[], wanted: Wanted, now: number): Alert[] {
   const many = villages.length > 1;
   const alerts: Alert[] = [];
-  for (const { account, plan } of villages) {
+  for (const { account, plan, nickname } of villages) {
+    const name = nickname ?? account.tag;
     for (const event of plan.events) {
       const at = event.at * 1000;
       const kind = kindOf(event);
       if (at <= now || !kind || wanted.off.includes(kind)) continue;
       let words: { cue: Cue; title: string; body: string; image: string | null } | null = null;
-      if (event.kind === "finish" && event.key) words = finished(plan, event.key, many, account.tag);
+      if (event.kind === "finish" && event.key) words = finished(plan, event.key, many, name);
       else if (event.kind === "helperReady")
-        words = helperFree(account, event.lane, event.at, plan, many, account.tag);
-      else if (event.kind === "towerReady") words = towerReady(account, many, account.tag);
+        words = helperFree(account, event.lane, event.at, plan, many, name);
+      else if (event.kind === "towerReady") words = towerReady(account, many, name);
       if (!words) continue;
       alerts.push({
         id: alertId(`${account.tag}|${event.kind}|${event.key ?? event.lane}|${event.at}`),

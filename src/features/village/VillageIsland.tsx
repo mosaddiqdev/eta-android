@@ -209,6 +209,7 @@ function VillageScreen() {
         )}
         <AccountBar
           tag={account.tag}
+          nickname={village.villages.find((v) => v.tag === account.tag)?.nickname}
           townHall={account.townHall}
           age={Math.max(0, now - plan.exportedAt)}
           now={now}
@@ -219,6 +220,7 @@ function VillageScreen() {
           onSwitch={village.switchTo}
           onAdd={() => fromClipboard("add")}
           onForget={village.forget}
+          onRename={village.rename}
         />
         <NextUp
           plan={plan}

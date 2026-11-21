@@ -12,7 +12,11 @@ export async function savedPlans(): Promise<Village[]> {
   for (const saved of readVillages().villages) {
     try {
       const { account, warnings } = parseExport(saved.raw, gameCatalog);
-      found.push({ account, plan: buildPlan(account, warnings, emptyScenario(now)) });
+      found.push({
+        account,
+        plan: buildPlan(account, warnings, emptyScenario(now)),
+        nickname: saved.nickname,
+      });
     } catch {
       // A saved village that no longer reads is dropped by the village page; it just gets nothing here.
     }

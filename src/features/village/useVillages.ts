@@ -13,6 +13,8 @@ import {
   type SavedVillage,
   type SavedVillages,
   type VillageSummary,
+  villageLabel,
+  withNickname,
   withVillage,
   writeVillages,
 } from "./villages";
@@ -209,7 +211,7 @@ export function useVillages(resetScenario: () => void) {
       setLoaded(null);
     }
     if (!gone) return;
-    toast(`Forgot ${gone.tag}`, {
+    toast(`Forgot ${villageLabel(gone)}`, {
       tone: "neutral",
       icon: Trash2,
       action: {
@@ -226,8 +228,18 @@ export function useVillages(resetScenario: () => void) {
     });
   }, [commit, open, resetScenario]);
 
+  const rename = useCallback(
+    (tag: string, text: string) => commit(withNickname(savedRef.current, tag, text)),
+    [commit],
+  );
+
   const villages = useMemo<VillageSummary[]>(() => {
-    const list = saved.villages.map(({ tag, townHall, exportedAt }) => ({ tag, townHall, exportedAt }));
+    const list: VillageSummary[] = saved.villages.map(({ tag, townHall, exportedAt, nickname }) => ({
+      tag,
+      townHall,
+      exportedAt,
+      nickname,
+    }));
     const shown = loaded?.account;
     // The sample village is never saved, but it is open, so the list still has to show it.
     if (shown && !list.some((v) => v.tag === shown.tag)) {
@@ -249,5 +261,6 @@ export function useVillages(resetScenario: () => void) {
     importSample,
     switchTo,
     forget,
+    rename,
   };
 }

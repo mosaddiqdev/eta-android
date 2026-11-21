@@ -1,0 +1,169 @@
+.editor {
+  display: grid;
+  gap: 1rem;
+  padding: 0.25rem 0.25rem 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--raised-2);
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease);
+}
+
+.back:active {
+  transform: scale(0.92);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-inline: 0.5rem;
+}
+
+.tag {
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.caption {
+  padding-inline: 0.5rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.input {
+  min-height: 3.25rem;
+  padding: 0 1rem;
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  background: var(--raised-2);
+  color: var(--text);
+  font: inherit;
+  /* 16px or more, or iOS-style browsers zoom the page on focus. */
+  font-size: 1.0625rem;
+  font-weight: 600;
+  transition: border-color 0.15s var(--ease);
+}
+
+.input::placeholder {
+  color: var(--text-soft);
+  font-weight: 400;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--text);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--warn);
+}
+
+.help {
+  padding-inline: 0.5rem;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+.help[data-bad] {
+  color: var(--warn);
+}
+
+.ideas {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.idea {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease);
+}
+
+.idea:active {
+  background: var(--raised-2);
+}
+
+@media (hover: hover) {
+  .idea:hover {
+    background: var(--raised-2);
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+.remove,
+.save {
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.remove {
+  margin-right: auto;
+  background: none;
+  color: var(--warn);
+}
+
+.save {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.save:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.editor button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
