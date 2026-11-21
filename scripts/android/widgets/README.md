@@ -21,3 +21,7 @@ Rules that keep a widget independent:
   A widget refreshes when its data changes, when something it shows ends, and at midnight.
 
 Docs: docs/android.md
+
+## Font
+
+Widgets use the app's own typeface, Plus Jakarta Sans (OFL), through `common/res/font/eta_sans.xml`: static Medium and Bold cut from the same variable font the page uses. Layouts say `android:fontFamily="@font/eta_sans"`, and `textStyle="bold"` picks the Bold cut. Another weight is one more `.ttf` plus a line in that file.
