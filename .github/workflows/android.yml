@@ -1,4 +1,4 @@
-# Builds the Android app and attaches the APK to the run. Push a tag like v0.1.0 to also publish it as a GitHub release.
+# Builds the Android app and publishes the APK as a GitHub release (a direct download, not a zip).
 # How it works, the signing secrets and the toolchain versions: docs/android.md
 name: Android
 
@@ -55,22 +55,20 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null || true
 
-      - name: Build debug APK
-        working-directory: android
-        run: ./gradlew --no-daemon assembleDebug
-
-      # A release APK is built and signed only when the four signing secrets exist (see docs/android.md).
-      - name: Build and sign release APK
-        id: release
+      # With the four signing secrets (see docs/android.md) the one APK is the signed release build, which installs over
+      # the previous one. Without them the only option is a debug build, whose key changes every run, so it can't update.
+      - name: Build and sign the APK
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          mkdir -p dist-apk
           if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-            echo "No signing secrets, so only the debug APK is built."
-            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No signing secrets, so this is a debug APK that can't be installed over an older build."
+            (cd android && ./gradlew --no-daemon assembleDebug)
+            cp android/app/build/outputs/apk/debug/app-debug.apk dist-apk/ClashETA.apk
             exit 0
           fi
           (cd android && ./gradlew --no-daemon assembleRelease)
@@ -78,29 +76,31 @@ jobs:
           TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
           UNSIGNED="android/app/build/outputs/apk/release/app-release-unsigned.apk"
           "$TOOLS/zipalign" -p -f 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
-          mkdir -p dist-apk
           KS_PASS="$KEYSTORE_PASSWORD" K_PASS="$KEY_PASSWORD" "$TOOLS/apksigner" sign \
             --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" \
             --ks-pass env:KS_PASS --key-pass env:K_PASS \
-            --out dist-apk/eta-release.apk "$RUNNER_TEMP/aligned.apk"
-          "$TOOLS/apksigner" verify dist-apk/eta-release.apk
+            --out dist-apk/ClashETA.apk "$RUNNER_TEMP/aligned.apk"
+          "$TOOLS/apksigner" verify dist-apk/ClashETA.apk
           rm -f "$RUNNER_TEMP/release.jks"
-          echo "signed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Collect APKs
-        run: |
-          mkdir -p dist-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist-apk/eta-debug.apk
-          ls -lh dist-apk
-
+      # Kept as a run artifact too, but that downloads as a zip; the release below is the direct APK link.
       - uses: actions/upload-artifact@v7
         with:
           name: eta-apk
-          path: dist-apk/*.apk
+          path: dist-apk/ClashETA.apk
           if-no-files-found: error
 
+      # A tag like v0.1.0 publishes a normal release. Any other run replaces one rolling "latest build" release, so the
+      # newest APK is always at https://github.com/<owner>/<repo>/releases/download/latest-build/ClashETA.apk
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist-apk/*.apk --generate-notes
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            gh release create "$GITHUB_REF_NAME" dist-apk/ClashETA.apk --generate-notes
+          else
+            gh release delete latest-build --cleanup-tag --yes 2>/dev/null || true
+            gh release create latest-build dist-apk/ClashETA.apk --prerelease --target "$GITHUB_SHA" \
+              --title "Latest build" \
+              --notes "Built from ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). Open this on your phone and tap ClashETA.apk."
+          fi
