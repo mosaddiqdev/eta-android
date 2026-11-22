@@ -59,14 +59,14 @@ In CI the same thing happens in one job. The APK is an artifact of the run (`eta
 
 ## Signing
 
-Without secrets the workflow builds `eta-debug.apk`, which installs fine for personal use. For a release APK that always updates in place, create a keystore once:
+Without secrets the workflow can only build a debug APK, whose key changes every run, so it can't be installed over an older build. With the secrets it builds one signed `ClashETA.apk` that always updates in place. Create a keystore once:
 
 ```
 keytool -genkeypair -v -keystore release.jks -alias eta -keyalg RSA -keysize 2048 -validity 10000
 base64 -w0 release.jks     # paste the output into ANDROID_KEYSTORE_BASE64
 ```
 
-Then add four repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. The workflow then also builds, zip-aligns and signs `eta-release.apk`. Keep the keystore somewhere safe: an app signed with a different key can't be installed over this one.
+Then add four repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. The workflow then builds, zip-aligns and signs `ClashETA.apk`, and publishes it to the rolling `latest-build` release (or to a normal release for a `v*` tag): `https://github.com/mosaddiqdev/eta-android/releases/download/latest-build/ClashETA.apk`. Keep the keystore somewhere safe: an app signed with a different key can't be installed over this one.
 
 ## The app id
 
