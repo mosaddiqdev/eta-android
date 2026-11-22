@@ -92,7 +92,10 @@ jobs:
 
       # A tag like v0.1.0 publishes a normal release. Any other run replaces one rolling "latest build" release, so the
       # newest APK is always at https://github.com/<owner>/<repo>/releases/download/latest-build/ClashETA.apk
+      # Only a run someone started by hand, or a tag, publishes. A merge to main builds and checks, but does not replace the
+      # APK you are testing from another branch.
       - name: Publish release
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
