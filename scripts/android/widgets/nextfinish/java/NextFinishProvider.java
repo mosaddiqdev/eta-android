@@ -21,14 +21,14 @@ public class NextFinishProvider extends AppWidgetProvider {
 
     private static void draw(Context context, AppWidgetManager manager, int[] ids) {
         if (ids.length == 0) {
-            NextFinishSchedule.cancel(context);
+            EtaWidgetSchedule.cancel(context, NextFinishProvider.class, REFRESH);
             return;
         }
         long now = System.currentTimeMillis();
         NextFinishData data = NextFinishData.read(context);
         for (int id : ids)
             manager.updateAppWidget(id, NextFinishRenderer.render(context, manager.getAppWidgetOptions(id), data, now));
-        NextFinishSchedule.arm(context, data.nextChange(now), now);
+        EtaWidgetSchedule.arm(context, NextFinishProvider.class, REFRESH, data.nextChange(now), now);
     }
 
     @Override
@@ -54,6 +54,6 @@ public class NextFinishProvider extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        NextFinishSchedule.cancel(context);
+        EtaWidgetSchedule.cancel(context, NextFinishProvider.class, REFRESH);
     }
 }

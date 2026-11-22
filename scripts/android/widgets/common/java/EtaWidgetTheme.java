@@ -13,6 +13,7 @@ final class EtaWidgetTheme {
     final int lab;
     final int pet;
     final int good;
+    final int warn;
     final int onAccent;
 
     private EtaWidgetTheme(boolean dark) {
@@ -22,6 +23,7 @@ final class EtaWidgetTheme {
         builder = dark ? 0xFF4ABBE8 : 0xFF0E7BAD;
         lab = dark ? 0xFFE660C6 : 0xFFA31782;
         pet = dark ? 0xFFE3BE68 : 0xFF916600;
+        warn = dark ? 0xFFE0A867 : 0xFF935611;
         good = dark ? 0xFF8FD1AE : 0xFF1D724D;
         onAccent = dark ? 0xFF121212 : 0xFFFFFFFF;
     }

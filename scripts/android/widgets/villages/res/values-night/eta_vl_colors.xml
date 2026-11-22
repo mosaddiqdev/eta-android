@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="eta_vl_raised">#FF1A1A1A</color>
+    <color name="eta_vl_raised2">#FF232323</color>
+    <color name="eta_vl_line">#FF333333</color>
+    <color name="eta_vl_text">#FFECECEC</color>
+    <color name="eta_vl_soft">#FF9B9B9B</color>
+    <color name="eta_vl_builder">#FF4ABBE8</color>
+    <color name="eta_vl_lab">#FFE660C6</color>
+    <color name="eta_vl_pet">#FFE3BE68</color>
+    <color name="eta_vl_warn">#FFE0A867</color>
+</resources>

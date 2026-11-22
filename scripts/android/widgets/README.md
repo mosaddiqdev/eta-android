@@ -25,3 +25,7 @@ Docs: docs/android.md
 ## Font
 
 Widgets use the app's own typeface, Plus Jakarta Sans (OFL): static Medium and Bold cut from the variable font the page uses, in `common/res/font/`. Each TextView names its weight file directly, `@font/eta_sans_500` or `@font/eta_sans_700`, and has no `textStyle="bold"` (that would ask Android to thicken a Bold that is already Bold). This is how other widget apps ship a font too. `eta_sans.xml` is the same two weights as a family, for anything that wants to ask by weight. Another weight is one more `.ttf`.
+
+## Shared helpers (`common/java`)
+
+`EtaWidgetWhen` (the day and clock words), `EtaWidgetArt` (pictures from the app's assets, shrunk for the home screen), `EtaWidgetSchedule` (the one alarm a widget needs), `EtaWidgetViews` (theme-aware colours) and `EtaWidgetTheme` (the app's colours). A widget keeps only what is its own: its data, its drawing and its layouts.

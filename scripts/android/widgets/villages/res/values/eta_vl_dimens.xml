@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12 and newer give widgets one corner radius, so they all match the launcher's. -->
+    <dimen name="eta_vl_radius">22dp</dimen>
+    <dimen name="eta_vl_inner">12dp</dimen>
+</resources>

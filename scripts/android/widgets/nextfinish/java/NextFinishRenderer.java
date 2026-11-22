@@ -88,9 +88,9 @@ final class NextFinishRenderer {
             // On a short square the level line is what gives way, so the time is never cut off.
             visible(views, !(size == Size.SMALL && height < 125), R.id.eta_nf_level);
             visible(views, true, R.id.eta_nf_when, R.id.eta_nf_day, R.id.eta_nf_time);
-            views.setTextViewText(R.id.eta_nf_day, NextFinishWhen.day(upgrade.at, now));
-            views.setTextViewText(R.id.eta_nf_time, NextFinishWhen.time(context, upgrade.at, data.clock));
-            Bitmap art = NextFinishArt.load(context, upgrade.image, artSide);
+            views.setTextViewText(R.id.eta_nf_day, EtaWidgetWhen.day(upgrade.at, now));
+            views.setTextViewText(R.id.eta_nf_time, EtaWidgetWhen.time(context, upgrade.at, data.clock));
+            Bitmap art = EtaWidgetArt.load(context, upgrade.image, artSide);
             if (art != null) views.setImageViewBitmap(R.id.eta_nf_art, art);
             else views.setImageViewResource(R.id.eta_nf_art, R.mipmap.ic_launcher);
             // The day takes the lane's colour where there is room for a splash of colour.
@@ -135,7 +135,7 @@ final class NextFinishRenderer {
             if (!shown) continue;
             views.setInt(CHIP[i], "setBackgroundResource",
                 !forced ? R.drawable.eta_nf_chip : theme.dark ? R.drawable.eta_nf_chip_dark : R.drawable.eta_nf_chip_light);
-            Bitmap icon = NextFinishArt.load(context, lanes.get(i).icon, 72);
+            Bitmap icon = EtaWidgetArt.load(context, lanes.get(i).icon, 72);
             if (icon != null) views.setImageViewBitmap(ICON[i], icon);
             else views.setImageViewResource(ICON[i], R.mipmap.ic_launcher);
             views.setTextViewText(VALUE[i], values.get(i));
