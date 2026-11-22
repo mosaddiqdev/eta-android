@@ -24,8 +24,10 @@ Docs: docs/android.md
 
 ## Font
 
-Widgets use the app's own typeface, Plus Jakarta Sans (OFL): static Medium and Bold cut from the variable font the page uses, in `common/res/font/`. Each TextView names its weight file directly, `@font/eta_sans_500` or `@font/eta_sans_700`, and has no `textStyle="bold"` (that would ask Android to thicken a Bold that is already Bold). This is how other widget apps ship a font too. `eta_sans.xml` is the same two weights as a family, for anything that wants to ask by weight. Another weight is one more `.ttf`.
+Widget text can't rely on a font set in the layout: it shows in the phone's own font on launchers that ignore it (seen on a Pixel launcher with `android:fontFamily="@font/..."`). So a widget that wants the app's typeface draws its words as pictures: `common/java/EtaWidgetText` draws a line with Plus Jakarta Sans (Medium, Bold) or JetBrains Mono (SemiBold) from `common/res/font/`, in white, and an ImageView in the layout shows it with a colour filter (`setColorInt` on Android 12+, so it flips with the phone's theme; a fixed colour before that). The line is cut with an ellipsis to the room the layout leaves it, so it never needs more. Each text ImageView has no description; the row has one for screen readers. The weights are static cuts of the variable fonts the page uses. Another weight is one more `.ttf` and a `Face` entry.
+
+Used by Villages. Next finish still uses TextViews and the phone's font.
 
 ## Shared helpers (`common/java`)
 
-`EtaWidgetWhen` (the day and clock words), `EtaWidgetArt` (pictures from the app's assets, shrunk for the home screen), `EtaWidgetSchedule` (the one alarm a widget needs), `EtaWidgetViews` (theme-aware colours) and `EtaWidgetTheme` (the app's colours). A widget keeps only what is its own: its data, its drawing and its layouts.
+`EtaWidgetWhen` (the day and clock words), `EtaWidgetText` (the words as pictures, in the app's fonts), `EtaWidgetArt` (pictures from the app's assets, shrunk for the home screen), `EtaWidgetSchedule` (the one alarm a widget needs), `EtaWidgetViews` (theme-aware colours) and `EtaWidgetTheme` (the app's colours). A widget keeps only what is its own: its data, its drawing and its layouts.
