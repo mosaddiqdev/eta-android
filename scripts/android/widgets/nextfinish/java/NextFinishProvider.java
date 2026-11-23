@@ -17,18 +17,24 @@ public class NextFinishProvider extends AppWidgetProvider {
     public static void refresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         draw(context, manager, manager.getAppWidgetIds(new ComponentName(context, NextFinishProvider.class)));
+        // The picker's picture, at the size the widget is first placed at, with the player's own village.
+        Bundle placed = new Bundle();
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
+        EtaWidgetPreview.set(context, NextFinishProvider.class,
+            NextFinishRenderer.render(context, placed, NextFinishData.read(context), System.currentTimeMillis()));
     }
 
     private static void draw(Context context, AppWidgetManager manager, int[] ids) {
         if (ids.length == 0) {
-            NextFinishSchedule.cancel(context);
+            EtaWidgetSchedule.cancel(context, NextFinishProvider.class, REFRESH);
             return;
         }
         long now = System.currentTimeMillis();
         NextFinishData data = NextFinishData.read(context);
         for (int id : ids)
             manager.updateAppWidget(id, NextFinishRenderer.render(context, manager.getAppWidgetOptions(id), data, now));
-        NextFinishSchedule.arm(context, data.nextChange(now), now);
+        EtaWidgetSchedule.arm(context, NextFinishProvider.class, REFRESH, data.nextChange(now), now);
     }
 
     @Override
@@ -54,6 +60,6 @@ public class NextFinishProvider extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        NextFinishSchedule.cancel(context);
+        EtaWidgetSchedule.cancel(context, NextFinishProvider.class, REFRESH);
     }
 }

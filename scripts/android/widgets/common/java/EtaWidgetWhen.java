@@ -8,8 +8,8 @@ import java.util.Locale;
 
 // "Tomorrow" and "10:05 PM", worded as on the village page (src/features/finish/format.ts): Today, Tomorrow, then the
 // weekday and date. The clock follows the app's own setting, or the phone's when that is Auto.
-final class NextFinishWhen {
-    private NextFinishWhen() {}
+final class EtaWidgetWhen {
+    private EtaWidgetWhen() {}
 
     private static long midnight(long time) {
         Calendar calendar = Calendar.getInstance();

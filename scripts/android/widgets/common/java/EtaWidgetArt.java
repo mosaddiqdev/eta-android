@@ -9,10 +9,10 @@ import java.io.InputStream;
 
 // The pictures, from the app's own assets (public/...): the upgrade and the lane icons. A widget's pictures count against a memory
 // limit on the home screen, so each is shrunk to what a tile can show, and centred on a square so it isn't cropped.
-final class NextFinishArt {
+final class EtaWidgetArt {
     private static final String ROOT = "public/";
 
-    private NextFinishArt() {}
+    private EtaWidgetArt() {}
 
     /** `side` is the longest edge in pixels the tile can show; nothing is kept larger. */
     static Bitmap load(Context context, String path, int side) {

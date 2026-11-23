@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -13,7 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Draws the widget: the app's colours, words and lane icons in one of four layouts, chosen by the size the home screen
-// gives it. Nothing here counts: times are a day and a clock time, so the picture stays true until the next redraw.
+// gives it. Nothing here counts: times are a day and a clock time, so the picture stays true until the next redraw. The words
+// are pictures drawn with the app's fonts (EtaWidgetText), each cut to the room its layout gives it.
 final class NextFinishRenderer {
     private NextFinishRenderer() {}
 
@@ -30,78 +30,115 @@ final class NextFinishRenderer {
         return Size.LARGE;
     }
 
-    /** Sets a colour that belongs to the theme. On Android 12 and newer the phone picks light or dark itself when the theme flips. */
-    private static void tint(RemoteViews views, int id, EtaWidgetTheme theme, boolean forced, int light, int dark) {
-        if (!forced && Build.VERSION.SDK_INT >= 31) views.setColorInt(id, "setTextColor", light, dark);
-        else views.setInt(id, "setTextColor", theme.dark ? dark : light);
+    // Text sizes in sp, in the order SMALL, WIDE, LARGE, TALL.
+    private static float pick(Size size, float small, float wide, float large, float tall) {
+        return size == Size.SMALL ? small : size == Size.WIDE ? wide : size == Size.LARGE ? large : tall;
     }
 
-    private static void visible(RemoteViews views, boolean on, int... ids) {
-        for (int id : ids) views.setViewVisibility(id, on ? View.VISIBLE : View.GONE);
+    /** The words' own state: the layout in use and how wide it is. */
+    private static final class Ink extends EtaWidgetInk {
+        final Size size;
+        final int widthDp;
+
+        Ink(Context context, RemoteViews views, Size size, int widthDp) {
+            super(context, views);
+            this.size = size;
+            this.widthDp = widthDp;
+        }
+
+        /** The width the name, level and label can use beside the picture, before the time column, in pixels. */
+        int room(int whenPx) {
+            switch (size) {
+                case LARGE: return px(widthDp - 28 - 64 - 12 - 8) - whenPx;
+                case WIDE: return px(widthDp - 20 - 48 - 10 - 8) - whenPx;
+                default: return px(widthDp - 24);
+            }
+        }
     }
 
     static RemoteViews render(Context context, Bundle options, NextFinishData data, long now) {
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
         int height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
         Size size = sizeOf(width, height);
-        EtaWidgetTheme theme = EtaWidgetTheme.of(context);
-        String chosen = context.getSharedPreferences("eta_native", Context.MODE_PRIVATE).getString("theme", "auto");
-        boolean forced = !chosen.equals("auto");
         int layout = size == Size.LARGE ? R.layout.eta_nf_large
             : size == Size.WIDE ? R.layout.eta_nf_wide
             : size == Size.TALL ? R.layout.eta_nf_tall
             : R.layout.eta_nf_small;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
-        EtaWidgetTheme light = EtaWidgetTheme.fixed(false);
-        EtaWidgetTheme dark = EtaWidgetTheme.fixed(true);
+        Ink ink = new Ink(context, views, size, width);
+        EtaWidgetTheme light = ink.light;
+        EtaWidgetTheme dark = ink.dark;
 
         // Surfaces. With the theme on Auto these are the plain drawables, which the phone resolves light or dark by itself.
         views.setInt(R.id.eta_nf_root, "setBackgroundResource",
-            !forced ? R.drawable.eta_nf_bg : theme.dark ? R.drawable.eta_nf_bg_dark : R.drawable.eta_nf_bg_light);
+            ink.surface(R.drawable.eta_nf_bg, R.drawable.eta_nf_bg_dark, R.drawable.eta_nf_bg_light));
         views.setInt(R.id.eta_nf_art, "setBackgroundResource",
-            !forced ? R.drawable.eta_nf_tile : theme.dark ? R.drawable.eta_nf_tile_dark : R.drawable.eta_nf_tile_light);
-        tint(views, R.id.eta_nf_name, theme, forced, light.text, dark.text);
-        tint(views, R.id.eta_nf_time, theme, forced, light.text, dark.text);
-        tint(views, R.id.eta_nf_level, theme, forced, light.soft, dark.soft);
-        tint(views, R.id.eta_nf_day, theme, forced, light.soft, dark.soft);
+            ink.surface(R.drawable.eta_nf_tile, R.drawable.eta_nf_tile_dark, R.drawable.eta_nf_tile_light));
 
         NextFinishData.Pick next = data.next(now);
         int artSide = size == Size.LARGE || size == Size.TALL ? 200 : 144;
+        float nameSp = pick(size, 15f, 15f, 18f, 17f);
+        float levelSp = pick(size, 12f, 12f, 13f, 12f);
         if (next == null) {
             // Nothing to show: say what to do, and keep the whole widget a way into the app.
             boolean none = data.villages.isEmpty();
-            views.setTextViewText(R.id.eta_nf_name, none ? "Open ClashETA" : "Nothing upgrading");
-            views.setTextViewText(R.id.eta_nf_level, none ? "Import your village" : "Every worker is free");
+            int room = ink.room(0);
+            ink.text(R.id.eta_nf_name, none ? "Open ClashETA" : "Nothing upgrading", EtaWidgetText.Face.TITLE, nameSp, room,
+                size == Size.TALL ? 2 : 1, 0f, false, light.text, dark.text);
+            ink.text(R.id.eta_nf_level, none ? "Import your village" : "Every worker is free", EtaWidgetText.Face.BODY, levelSp,
+                room, light.soft, dark.soft);
             views.setImageViewResource(R.id.eta_nf_art, R.mipmap.ic_launcher);
-            visible(views, false, R.id.eta_nf_when, R.id.eta_nf_day, R.id.eta_nf_time);
-            visible(views, true, R.id.eta_nf_level);
+            EtaWidgetViews.visible(views, false, R.id.eta_nf_when, R.id.eta_nf_day, R.id.eta_nf_time);
             if (size == Size.LARGE) {
-                visible(views, false, R.id.eta_nf_chips);
-                views.setTextViewText(R.id.eta_nf_label, "Next to finish");
-                tint(views, R.id.eta_nf_label, theme, forced, light.builder, dark.builder);
+                EtaWidgetViews.visible(views, false, R.id.eta_nf_chips);
+                ink.text(R.id.eta_nf_label, "Next to finish", EtaWidgetText.Face.TITLE, 11f, room, 1, 0.06f, true,
+                    light.builder, dark.builder);
             }
-            if (size == Size.TALL) visible(views, false, R.id.eta_nf_chips);
+            if (size == Size.TALL) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips);
+            views.setContentDescription(R.id.eta_nf_root, none ? "ClashETA. Import your village." : "Nothing upgrading.");
         } else {
             NextFinishData.Upgrade upgrade = next.upgrade;
-            views.setTextViewText(R.id.eta_nf_name, upgrade.name);
-            views.setTextViewText(R.id.eta_nf_level, upgrade.detail);
+            String day = EtaWidgetWhen.day(upgrade.at, now);
+            String time = EtaWidgetWhen.time(context, upgrade.at, data.clock);
+            int laneLight = light.lane(upgrade.lane);
+            int laneDark = dark.lane(upgrade.lane);
+            EtaWidgetViews.visible(views, true, R.id.eta_nf_when, R.id.eta_nf_day, R.id.eta_nf_time);
+
+            // The day and time first: they are as wide as they need to be, and the words take what is left. The time is the
+            // biggest thing in the widget, so it shrinks before it is ever cut off.
+            float daySp = pick(size, 12f, 11f, 12f, 12f);
+            int whenBox = size == Size.SMALL || size == Size.TALL ? ink.px(width - 24)
+                : size == Size.WIDE ? ink.px((width - 20 - 48 - 10 - 8) * 0.45f) : ink.px((width - 28 - 64 - 12 - 8) * 0.5f);
+            float timeSp = EtaWidgetText.fit(context, time, EtaWidgetText.Face.NUMBER, pick(size, 19f, 17f, 22f, 22f), 12f, whenBox);
+            Bitmap timePic = ink.text(R.id.eta_nf_time, time, EtaWidgetText.Face.NUMBER, timeSp, 0, light.text, dark.text);
+            Bitmap dayPic = size == Size.WIDE
+                ? ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.BODY, daySp, 0, light.soft, dark.soft)
+                : size == Size.SMALL
+                    ? ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.TITLE, daySp, 0, laneLight, laneDark)
+                    : ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.BODY, daySp, 0, laneLight, laneDark);
+            int whenPx = size == Size.LARGE || size == Size.WIDE ? Math.max(timePic.getWidth(), dayPic.getWidth()) : 0;
+
+            int room = ink.room(whenPx);
+            ink.text(R.id.eta_nf_name, upgrade.name, EtaWidgetText.Face.TITLE, nameSp, room, size == Size.TALL ? 2 : 1, 0f, false,
+                light.text, dark.text);
             // On a short square the level line is what gives way, so the time is never cut off.
-            visible(views, !(size == Size.SMALL && height < 125), R.id.eta_nf_level);
-            visible(views, true, R.id.eta_nf_when, R.id.eta_nf_day, R.id.eta_nf_time);
-            views.setTextViewText(R.id.eta_nf_day, NextFinishWhen.day(upgrade.at, now));
-            views.setTextViewText(R.id.eta_nf_time, NextFinishWhen.time(context, upgrade.at, data.clock));
-            Bitmap art = NextFinishArt.load(context, upgrade.image, artSide);
+            boolean levelShown = !(size == Size.SMALL && height < 125);
+            EtaWidgetViews.visible(views, levelShown, R.id.eta_nf_level);
+            if (levelShown)
+                ink.text(R.id.eta_nf_level, upgrade.detail, EtaWidgetText.Face.BODY, levelSp, room, light.soft, dark.soft);
+
+            Bitmap art = EtaWidgetArt.load(context, upgrade.image, artSide);
             if (art != null) views.setImageViewBitmap(R.id.eta_nf_art, art);
             else views.setImageViewResource(R.id.eta_nf_art, R.mipmap.ic_launcher);
-            // The day takes the lane's colour where there is room for a splash of colour.
-            if (size != Size.WIDE)
-                tint(views, R.id.eta_nf_day, theme, forced, light.lane(upgrade.lane), dark.lane(upgrade.lane));
             if (size == Size.LARGE) {
-                String where = data.villages.size() > 1 ? "Next to finish · " + (next.village.name.isEmpty() ? next.village.tag : next.village.name) : "Next to finish";
-                views.setTextViewText(R.id.eta_nf_label, where);
-                tint(views, R.id.eta_nf_label, theme, forced, light.lane(upgrade.lane), dark.lane(upgrade.lane));
+                String where = data.villages.size() > 1
+                    ? "Next to finish · " + (next.village.name.isEmpty() ? next.village.tag : next.village.name)
+                    : "Next to finish";
+                ink.text(R.id.eta_nf_label, where, EtaWidgetText.Face.TITLE, 11f, room, 1, 0.06f, true, laneLight, laneDark);
             }
-            if (size == Size.LARGE || size == Size.TALL) chips(context, views, next.village, size, now, theme, forced);
+            if (size == Size.LARGE || size == Size.TALL) chips(context, ink, next.village, now);
+            views.setContentDescription(R.id.eta_nf_root,
+                "Next to finish: " + upgrade.name + ", " + upgrade.detail + ", " + day + " " + time);
         }
 
         // The whole widget opens the app.
@@ -114,8 +151,8 @@ final class NextFinishRenderer {
 
     // The village page's summary tiles: each kind of worker with its own icon and how many are busy. Only the kinds this
     // village has, or has something running in, so a village without a Builder Base shows three.
-    private static void chips(Context context, RemoteViews views, NextFinishData.Village village, Size size, long now,
-                              EtaWidgetTheme theme, boolean forced) {
+    private static void chips(Context context, Ink ink, NextFinishData.Village village, long now) {
+        RemoteViews views = ink.views;
         List<NextFinishData.Lane> lanes = new ArrayList<>();
         List<String> values = new ArrayList<>();
         for (NextFinishData.Lane lane : village.lanes) {
@@ -124,28 +161,31 @@ final class NextFinishRenderer {
             lanes.add(lane);
             values.add(value);
         }
-        EtaWidgetTheme light = EtaWidgetTheme.fixed(false);
-        EtaWidgetTheme dark = EtaWidgetTheme.fixed(true);
-        visible(views, !lanes.isEmpty(), R.id.eta_nf_chips);
+        boolean tall = ink.size == Size.TALL;
+        EtaWidgetViews.visible(views, !lanes.isEmpty(), R.id.eta_nf_chips);
+        // How much of a chip is left for its number, in pixels: the chip's share of the width, less its padding, icon and gap.
+        int count = Math.max(1, lanes.size());
+        int chipWidth = tall ? (ink.widthDp - 24 - 4) / 2 : (ink.widthDp - 28 - 4 * (count - 1)) / count;
+        int valueRoom = ink.px(chipWidth - 12 - (tall ? 18 : 20) - 5);
         for (int i = 0; i < CHIP.length; i++) {
             boolean shown = i < lanes.size();
             // In the card the chips sit two to a row: an empty partner keeps its place so a lone chip isn't stretched.
             boolean partnerShown = i % 2 == 0 ? i + 1 < lanes.size() : true;
-            views.setViewVisibility(CHIP[i], shown ? View.VISIBLE : size == Size.TALL && partnerShown && i % 2 == 1 ? View.INVISIBLE : View.GONE);
+            views.setViewVisibility(CHIP[i], shown ? View.VISIBLE : tall && partnerShown && i % 2 == 1 ? View.INVISIBLE : View.GONE);
             if (!shown) continue;
             views.setInt(CHIP[i], "setBackgroundResource",
-                !forced ? R.drawable.eta_nf_chip : theme.dark ? R.drawable.eta_nf_chip_dark : R.drawable.eta_nf_chip_light);
-            Bitmap icon = NextFinishArt.load(context, lanes.get(i).icon, 72);
+                ink.surface(R.drawable.eta_nf_chip, R.drawable.eta_nf_chip_dark, R.drawable.eta_nf_chip_light));
+            Bitmap icon = EtaWidgetArt.load(context, lanes.get(i).icon, 72);
             if (icon != null) views.setImageViewBitmap(ICON[i], icon);
             else views.setImageViewResource(ICON[i], R.mipmap.ic_launcher);
-            views.setTextViewText(VALUE[i], values.get(i));
-            tint(views, VALUE[i], theme, forced, light.text, dark.text);
+            float sp = EtaWidgetText.fit(context, values.get(i), EtaWidgetText.Face.NUMBER, 12f, 9f, valueRoom);
+            ink.text(VALUE[i], values.get(i), EtaWidgetText.Face.NUMBER, sp, valueRoom, ink.light.text, ink.dark.text);
             views.setContentDescription(CHIP[i], lanes.get(i).name + " " + values.get(i));
         }
-        if (size == Size.TALL) {
-            visible(views, lanes.size() > 0, R.id.eta_nf_row1);
-            visible(views, lanes.size() > 2, R.id.eta_nf_row2);
-            visible(views, lanes.size() > 4, R.id.eta_nf_row3);
+        if (tall) {
+            EtaWidgetViews.visible(views, lanes.size() > 0, R.id.eta_nf_row1);
+            EtaWidgetViews.visible(views, lanes.size() > 2, R.id.eta_nf_row2);
+            EtaWidgetViews.visible(views, lanes.size() > 4, R.id.eta_nf_row3);
         }
     }
 }

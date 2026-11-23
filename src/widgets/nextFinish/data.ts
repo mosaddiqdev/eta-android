@@ -52,7 +52,7 @@ export function detailOf(
   return `Level ${u.fromLevel} → ${u.toLevel}`;
 }
 
-const assetPath = (key: string | null) => {
+export const assetPath = (key: string | null) => {
   const url = imageUrl(key);
   return url ? `public${url}` : null;
 };

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eta_vl_label">Villages</string>
+    <string name="eta_vl_description">Every village\'s next finish, with a note when a worker is idle.</string>
+</resources>

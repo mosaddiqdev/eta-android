@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sized in grid cells on Android 12 and newer (4 x 3 to start; it can be made 3 x 2 up to a little over 5 x 4), in dp before
+     that. It is never refreshed on a timer: EtaWidgetSchedule wakes it when something finishes and at midnight, and the page
+     when the villages change. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="180dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:maxResizeWidth="380dp"
+    android:maxResizeHeight="300dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="3"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/eta_vl_widget"
+    android:previewLayout="@layout/eta_vl_widget"
+    android:description="@string/eta_vl_description" />
