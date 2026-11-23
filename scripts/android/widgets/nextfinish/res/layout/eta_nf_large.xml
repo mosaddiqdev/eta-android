@@ -27,35 +27,24 @@
             android:layout_weight="1"
             android:layout_marginStart="12dp"
             android:orientation="vertical">
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:fontFamily="@font/eta_sans_700"
-                android:text="Next to finish"
-                android:textColor="@color/eta_nf_builder"
-                android:textSize="11sp" />
-            <TextView
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+            <ImageView
                 android:id="@+id/eta_nf_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:fontFamily="@font/eta_sans_700"
-                android:text="Mortar"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="18sp" />
-            <TextView
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+            <ImageView
                 android:id="@+id/eta_nf_level"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="Level 13 → 14"
-                android:textColor="@color/eta_nf_soft"
-                android:textSize="13sp" />
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/eta_nf_when"
@@ -64,26 +53,18 @@
             android:layout_marginStart="8dp"
             android:gravity="end"
             android:orientation="vertical">
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_day"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="Tomorrow"
-                android:textColor="@color/eta_nf_soft"
-                android:textSize="12sp" />
-            <TextView
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+            <ImageView
                 android:id="@+id/eta_nf_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="10:05 PM"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="22sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
     </LinearLayout>
     <FrameLayout
@@ -111,19 +92,14 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/ic_launcher" />
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_chip1_value"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:gravity="end"
-                android:maxLines="1"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="6/6"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="12sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/eta_nf_chip2"
@@ -142,19 +118,14 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/ic_launcher" />
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_chip2_value"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:gravity="end"
-                android:maxLines="1"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="6/6"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="12sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/eta_nf_chip3"
@@ -173,19 +144,14 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/ic_launcher" />
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_chip3_value"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:gravity="end"
-                android:maxLines="1"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="6/6"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="12sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/eta_nf_chip4"
@@ -205,19 +171,14 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/ic_launcher" />
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_chip4_value"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:gravity="end"
-                android:maxLines="1"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="6/6"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="12sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/eta_nf_chip5"
@@ -237,19 +198,14 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/ic_launcher" />
-            <TextView
+            <ImageView
                 android:id="@+id/eta_nf_chip5_value"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:gravity="end"
-                android:maxLines="1"
-                android:fontFamily="@font/eta_sans_700"
-                android:fontFeatureSettings="tnum"
-                android:text="6/6"
-                android:textColor="@color/eta_nf_text"
-                android:textSize="12sp" />
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

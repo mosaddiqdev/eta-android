@@ -17,6 +17,12 @@ public class NextFinishProvider extends AppWidgetProvider {
     public static void refresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         draw(context, manager, manager.getAppWidgetIds(new ComponentName(context, NextFinishProvider.class)));
+        // The picker's picture, at the size the widget is first placed at, with the player's own village.
+        Bundle placed = new Bundle();
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
+        EtaWidgetPreview.set(context, NextFinishProvider.class,
+            NextFinishRenderer.render(context, placed, NextFinishData.read(context), System.currentTimeMillis()));
     }
 
     private static void draw(Context context, AppWidgetManager manager, int[] ids) {

@@ -26,7 +26,7 @@ Docs: docs/android.md
 
 Widget text can't rely on a font set in the layout: it shows in the phone's own font on launchers that ignore it (seen on a Pixel launcher with `android:fontFamily="@font/..."`). So a widget that wants the app's typeface draws its words as pictures: `common/java/EtaWidgetText` draws a line with Plus Jakarta Sans (Medium, Bold) or JetBrains Mono (SemiBold) from `common/res/font/`, in white, and an ImageView in the layout shows it with a colour filter (`setColorInt` on Android 12+, so it flips with the phone's theme; a fixed colour before that). The line is cut with an ellipsis to the room the layout leaves it, so it never needs more. Each text ImageView has no description; the row has one for screen readers. The weights are static cuts of the variable fonts the page uses. Another weight is one more `.ttf` and a `Face` entry.
 
-Used by Villages. Next finish still uses TextViews and the phone's font.
+Both widgets do this. `EtaWidgetInk` is the base of a widget's renderer (the views, the theme, `text(...)`), and `EtaWidgetPreview` gives the picker a real drawing of the widget on Android 15 and newer, because the layout alone has no words. A `TextView` is not used for anything that should look like the app.
 
 ## Shared helpers (`common/java`)
 

@@ -17,6 +17,12 @@ public class VillagesProvider extends AppWidgetProvider {
     public static void refresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         draw(context, manager, manager.getAppWidgetIds(new ComponentName(context, VillagesProvider.class)));
+        // The picker's picture, at the size the widget is first placed at, with the player's own villages.
+        Bundle placed = new Bundle();
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+        placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180);
+        EtaWidgetPreview.set(context, VillagesProvider.class,
+            VillagesRenderer.render(context, placed, VillagesData.read(context), System.currentTimeMillis()));
     }
 
     private static void draw(Context context, AppWidgetManager manager, int[] ids) {

@@ -40,37 +40,17 @@ final class VillagesRenderer {
     }
 
     /** What every row needs to draw itself, so the signatures stay short. */
-    private static final class Ink {
-        final Context context;
-        final RemoteViews views;
-        final EtaWidgetTheme theme;
-        final EtaWidgetTheme light = EtaWidgetTheme.fixed(false);
-        final EtaWidgetTheme dark = EtaWidgetTheme.fixed(true);
-        final boolean forced;
+    private static final class Ink extends EtaWidgetInk {
         final String clock;
         final long now;
         /** The room for the words beside the picture, before the time column takes its share, in pixels. */
         final int widthPx;
 
-        Ink(Context context, RemoteViews views, boolean forced, String clock, long now, int widthPx) {
-            this.context = context;
-            this.views = views;
-            this.theme = EtaWidgetTheme.of(context);
-            this.forced = forced;
+        Ink(Context context, RemoteViews views, String clock, long now, int widthPx) {
+            super(context, views);
             this.clock = clock;
             this.now = now;
             this.widthPx = widthPx;
-        }
-
-        void text(int id, String text, EtaWidgetText.Face face, float sp, int maxPx, int lightColor, int darkColor) {
-            text(id, text, face, sp, maxPx, 0f, false, lightColor, darkColor);
-        }
-
-        Bitmap text(int id, String text, EtaWidgetText.Face face, float sp, int maxPx, float tracking, boolean upper,
-                    int lightColor, int darkColor) {
-            Bitmap bitmap = EtaWidgetText.draw(context, text, face, sp, maxPx, tracking, upper);
-            EtaWidgetText.put(views, id, bitmap, theme, forced, lightColor, darkColor);
-            return bitmap;
         }
     }
 
@@ -79,19 +59,13 @@ final class VillagesRenderer {
         int heightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180);
         int rows = rowsFor(heightDp);
         float density = EtaWidgetText.density(context);
-        String chosen = context.getSharedPreferences("eta_native", Context.MODE_PRIVATE).getString("theme", "auto");
-        boolean forced = !chosen.equals("auto");
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.eta_vl_widget);
         int room = Math.round((widthDp - 2 * SIDE - ART_SIZE - GAP) * density);
-        Ink paint = new Ink(context, views, forced, data.clock, now, room);
-        EtaWidgetTheme theme = paint.theme;
-
-        views.setInt(R.id.eta_vl_root, "setBackgroundResource",
-            !forced ? R.drawable.eta_vl_bg : theme.dark ? R.drawable.eta_vl_bg_dark : R.drawable.eta_vl_bg_light);
-
+        Ink paint = new Ink(context, views, data.clock, now, room);
+        
         boolean several = data.villages.size() > 1;
         String label = several ? "Villages" : "Next to finish";
-        paint.text(R.id.eta_vl_label, label, EtaWidgetText.Face.TITLE, 11f, 0, 0.06f, true, paint.light.builder, paint.dark.builder);
+        paint.text(R.id.eta_vl_label, label, EtaWidgetText.Face.TITLE, 11f, 0, 1, 0.06f, true, paint.light.builder, paint.dark.builder);
         EtaWidgetViews.visible(views, false, R.id.eta_vl_head_idle);
 
         int used = 0;
@@ -132,10 +106,10 @@ final class VillagesRenderer {
             views.setViewVisibility(DIV[i], i > 0 && i < used ? View.VISIBLE : View.GONE);
         }
         views.setInt(R.id.eta_vl_root, "setBackgroundResource",
-            !forced ? R.drawable.eta_vl_bg : theme.dark ? R.drawable.eta_vl_bg_dark : R.drawable.eta_vl_bg_light);
+            paint.surface(R.drawable.eta_vl_bg, R.drawable.eta_vl_bg_dark, R.drawable.eta_vl_bg_light));
         for (int i = 0; i < ROWS; i++)
             views.setInt(DIV[i], "setBackgroundResource",
-                !forced ? R.drawable.eta_vl_line : theme.dark ? R.drawable.eta_vl_line_dark : R.drawable.eta_vl_line_light);
+                paint.surface(R.drawable.eta_vl_line, R.drawable.eta_vl_line_dark, R.drawable.eta_vl_line_light));
 
         // The whole widget opens the app.
         Intent open = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
@@ -147,7 +121,7 @@ final class VillagesRenderer {
 
     private static void tile(Ink p, int i) {
         p.views.setInt(ART[i], "setBackgroundResource",
-            !p.forced ? R.drawable.eta_vl_tile : p.theme.dark ? R.drawable.eta_vl_tile_dark : R.drawable.eta_vl_tile_light);
+            p.surface(R.drawable.eta_vl_tile, R.drawable.eta_vl_tile_dark, R.drawable.eta_vl_tile_light));
         p.views.setViewVisibility(ROW[i], View.VISIBLE);
     }
 
@@ -169,8 +143,8 @@ final class VillagesRenderer {
         if (next != null) {
             String day = EtaWidgetWhen.day(next.at, p.now);
             String time = EtaWidgetWhen.time(context, next.at, p.clock);
-            Bitmap t = p.text(TIME[i], time, EtaWidgetText.Face.NUMBER, 15f, 0, 0f, false, p.light.text, p.dark.text);
-            Bitmap d = p.text(DAY[i], day, EtaWidgetText.Face.BODY, 11f, 0, 0f, false, p.light.soft, p.dark.soft);
+            Bitmap t = p.text(TIME[i], time, EtaWidgetText.Face.NUMBER, 15f, 0, p.light.text, p.dark.text);
+            Bitmap d = p.text(DAY[i], day, EtaWidgetText.Face.BODY, 11f, 0, p.light.soft, p.dark.soft);
             whenPx = Math.max(t.getWidth(), d.getWidth()) + Math.round(WHEN_GAP * density);
             EtaWidgetViews.visible(p.views, true, WHEN[i]);
         } else {
@@ -183,7 +157,7 @@ final class VillagesRenderer {
         if (idle == null) {
             EtaWidgetViews.visible(p.views, false, IDLE[i]);
         } else {
-            Bitmap n = p.text(IDLE[i], idle, EtaWidgetText.Face.TITLE, 11f, room / 2, 0f, false, p.light.warn, p.dark.warn);
+            Bitmap n = p.text(IDLE[i], idle, EtaWidgetText.Face.TITLE, 11f, room / 2, p.light.warn, p.dark.warn);
             idlePx = n.getWidth() + Math.round(IDLE_GAP * density);
             EtaWidgetViews.visible(p.views, true, IDLE[i]);
         }
