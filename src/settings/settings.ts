@@ -16,6 +16,8 @@ export interface Settings {
   hideFinished: boolean;
   /** A tiny buzz on taps of steppers, switches and tabs, on phones that can. */
   haptics: boolean;
+  /** Android only: the village the one-village widgets show (Workers, and Next finish when set), by tag. Empty means Auto. */
+  mainVillage: string;
   /** Android only: when the app opens and the clipboard holds a new village export, import it without a paste. */
   autoImport: boolean;
   /** Android only: tell me when an upgrade finishes. The other notify switches only matter while this is on. */
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   startOn: "auto",
   hideFinished: false,
   haptics: true,
+  mainVillage: "",
   autoImport: true,
   notify: false,
   notifyOff: [],
@@ -65,6 +68,7 @@ export function parseSettings(raw: unknown): Settings {
     hideFinished: value.hideFinished === true,
     // On unless it was turned off, so an old saved value without the field keeps the default.
     haptics: value.haptics !== false,
+    mainVillage: typeof value.mainVillage === "string" ? value.mainVillage : "",
     // On unless it was turned off, like haptics.
     autoImport: value.autoImport !== false,
     notify: value.notify === true,

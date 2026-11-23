@@ -7,7 +7,7 @@ import type { PlannedUpgrade } from "../../village/plan";
 import type { Lane } from "../../village/types";
 
 /**
- * What the Next finish widget is sent (scripts/android/widgets/nextfinish/java/NextFinishData.java reads it). Every upgrade
+ * What the Next finish widget is sent (scripts/android/widgets/common/java/EtaWidgetVillages.java reads it; the Workers widget gets the same shape). Every upgrade
  * still running in every saved village, soonest first, with the words made here. The phone picks the next one, and drops
  * what has finished, each time it draws, so the widget stays right until the next import without the page being open.
  */

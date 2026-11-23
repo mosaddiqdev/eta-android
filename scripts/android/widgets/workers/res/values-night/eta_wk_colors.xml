@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="eta_wk_raised">#FF1A1A1A</color>
+    <color name="eta_wk_raised2">#FF232323</color>
+    <color name="eta_wk_line">#FF333333</color>
+    <color name="eta_wk_text">#FFECECEC</color>
+    <color name="eta_wk_soft">#FF9B9B9B</color>
+    <color name="eta_wk_builder">#FF4ABBE8</color>
+    <color name="eta_wk_lab">#FFE660C6</color>
+    <color name="eta_wk_pet">#FFE3BE68</color>
+    <color name="eta_wk_warn">#FFE0A867</color>
+</resources>

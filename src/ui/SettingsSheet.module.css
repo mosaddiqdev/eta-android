@@ -444,3 +444,28 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* A native select, so the phone's own picker opens. Sized like the quiet buttons beside it. */
+.select {
+  flex: none;
+  max-width: 45%;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--raised-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.select:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.select:disabled {
+  opacity: 0.5;
+}

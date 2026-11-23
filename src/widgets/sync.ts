@@ -1,10 +1,11 @@
 import { syncNextFinish } from "./nextFinish/sync";
 import { canWidget } from "./plugin";
 import { syncVillages } from "./villages/sync";
+import { syncWorkers } from "./workers/sync";
 
 // One place that knows every widget, so the rest of the app only says "the villages or the settings changed". A widget
 // adds its sync to `all` and nothing else changes. Runs one at a time, newest last, like the notification sync.
-const all = [syncNextFinish, syncVillages];
+const all = [syncNextFinish, syncVillages, syncWorkers];
 
 let queue: Promise<void> = Promise.resolve();
 let waiting: ReturnType<typeof setTimeout> | undefined;

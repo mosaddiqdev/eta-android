@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eta_wk_label">Workers</string>
+    <string name="eta_wk_description">Every worker in your main village, like the Workers tab: what each is upgrading, and who is idle.</string>
+</resources>
