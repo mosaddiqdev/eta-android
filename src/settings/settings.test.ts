@@ -15,6 +15,12 @@ describe("parseSettings", () => {
     });
   });
 
+  it("has no main village until one is picked, and keeps its tag", () => {
+    expect(DEFAULT_SETTINGS.mainVillage).toBe("");
+    expect(parseSettings({ mainVillage: "#ABC" }).mainVillage).toBe("#ABC");
+    expect(parseSettings({ mainVillage: 5 }).mainVillage).toBe("");
+  });
+
   it("imports on open unless that was turned off", () => {
     expect(DEFAULT_SETTINGS.autoImport).toBe(true);
     expect(parseSettings({}).autoImport).toBe(true);

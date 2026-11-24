@@ -7,12 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-// What the page last sent for the Next finish widget (src/widgets/nextFinish/data.ts): every upgrade still running, for
-// each saved village, with the words already made. Which one is next, and what has finished since, is worked out here at
-// draw time, so the widget stays right between imports.
-final class NextFinishData {
-    static final String WIDGET = "nextFinish";
-
+// What the page last sent for a widget that shows villages' workers (src/widgets/nextFinish/data.ts): every upgrade still
+// running, for each village it sends, with the words already made. Next finish and Workers read the same shape, each under
+// its own name. Which upgrade is next, and what has finished since, is worked out here at draw time, so a widget stays
+// right between imports.
+final class EtaWidgetVillages {
     static final class Upgrade {
         long at;
         String lane;
@@ -69,9 +68,9 @@ final class NextFinishData {
     /** "auto", "12" or "24": the app's own clock setting. */
     String clock = "auto";
 
-    static NextFinishData read(Context context) {
-        NextFinishData data = new NextFinishData();
-        String stored = EtaWidgetsPlugin.data(context, WIDGET);
+    static EtaWidgetVillages read(Context context, String widget) {
+        EtaWidgetVillages data = new EtaWidgetVillages();
+        String stored = EtaWidgetsPlugin.data(context, widget);
         if (stored == null) return data;
         try {
             JSONObject root = new JSONObject(stored);

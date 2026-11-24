@@ -22,7 +22,7 @@ public class NextFinishProvider extends AppWidgetProvider {
         placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
         placed.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
         EtaWidgetPreview.set(context, NextFinishProvider.class,
-            NextFinishRenderer.render(context, placed, NextFinishData.read(context), System.currentTimeMillis()));
+            NextFinishRenderer.render(context, placed, EtaWidgetVillages.read(context, "nextFinish"), System.currentTimeMillis()));
     }
 
     private static void draw(Context context, AppWidgetManager manager, int[] ids) {
@@ -31,7 +31,7 @@ public class NextFinishProvider extends AppWidgetProvider {
             return;
         }
         long now = System.currentTimeMillis();
-        NextFinishData data = NextFinishData.read(context);
+        EtaWidgetVillages data = EtaWidgetVillages.read(context, "nextFinish");
         for (int id : ids)
             manager.updateAppWidget(id, NextFinishRenderer.render(context, manager.getAppWidgetOptions(id), data, now));
         EtaWidgetSchedule.arm(context, NextFinishProvider.class, REFRESH, data.nextChange(now), now);

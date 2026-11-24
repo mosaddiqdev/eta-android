@@ -1,0 +1,12 @@
+<receiver android:name=".WorkersProvider" android:exported="true" android:label="@string/eta_wk_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- The day and the clock are worked out on the phone, so a new time zone, clock or language redraws them. -->
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/eta_wk_info" />
+        </receiver>
+        <!-- Fills the widget's list. Only the home screen may bind to it. -->
+        <service android:name=".WorkersService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />

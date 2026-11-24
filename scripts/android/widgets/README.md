@@ -30,4 +30,6 @@ Both widgets do this. `EtaWidgetInk` is the base of a widget's renderer (the vie
 
 ## Shared helpers (`common/java`)
 
+`EtaWidgetVillages` (what the page sent for a widget that shows a village's workers, and the arithmetic on it: next to finish, busy of how many).
+
 `EtaWidgetWhen` (the day and clock words), `EtaWidgetText` (the words as pictures, in the app's fonts), `EtaWidgetArt` (pictures from the app's assets, shrunk for the home screen), `EtaWidgetSchedule` (the one alarm a widget needs), `EtaWidgetViews` (theme-aware colours) and `EtaWidgetTheme` (the app's colours). A widget keeps only what is its own: its data, its drawing and its layouts.

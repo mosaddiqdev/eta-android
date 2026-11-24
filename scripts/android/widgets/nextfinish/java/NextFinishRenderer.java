@@ -56,7 +56,7 @@ final class NextFinishRenderer {
         }
     }
 
-    static RemoteViews render(Context context, Bundle options, NextFinishData data, long now) {
+    static RemoteViews render(Context context, Bundle options, EtaWidgetVillages data, long now) {
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
         int height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
         Size size = sizeOf(width, height);
@@ -75,7 +75,7 @@ final class NextFinishRenderer {
         views.setInt(R.id.eta_nf_art, "setBackgroundResource",
             ink.surface(R.drawable.eta_nf_tile, R.drawable.eta_nf_tile_dark, R.drawable.eta_nf_tile_light));
 
-        NextFinishData.Pick next = data.next(now);
+        EtaWidgetVillages.Pick next = data.next(now);
         int artSide = size == Size.LARGE || size == Size.TALL ? 200 : 144;
         float nameSp = pick(size, 15f, 15f, 18f, 17f);
         float levelSp = pick(size, 12f, 12f, 13f, 12f);
@@ -97,7 +97,7 @@ final class NextFinishRenderer {
             if (size == Size.TALL) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips);
             views.setContentDescription(R.id.eta_nf_root, none ? "ClashETA. Import your village." : "Nothing upgrading.");
         } else {
-            NextFinishData.Upgrade upgrade = next.upgrade;
+            EtaWidgetVillages.Upgrade upgrade = next.upgrade;
             String day = EtaWidgetWhen.day(upgrade.at, now);
             String time = EtaWidgetWhen.time(context, upgrade.at, data.clock);
             int laneLight = light.lane(upgrade.lane);
@@ -151,11 +151,11 @@ final class NextFinishRenderer {
 
     // The village page's summary tiles: each kind of worker with its own icon and how many are busy. Only the kinds this
     // village has, or has something running in, so a village without a Builder Base shows three.
-    private static void chips(Context context, Ink ink, NextFinishData.Village village, long now) {
+    private static void chips(Context context, Ink ink, EtaWidgetVillages.Village village, long now) {
         RemoteViews views = ink.views;
-        List<NextFinishData.Lane> lanes = new ArrayList<>();
+        List<EtaWidgetVillages.Lane> lanes = new ArrayList<>();
         List<String> values = new ArrayList<>();
-        for (NextFinishData.Lane lane : village.lanes) {
+        for (EtaWidgetVillages.Lane lane : village.lanes) {
             String value = village.value(lane, now);
             if (value == null || lanes.size() == CHIP.length) continue;
             lanes.add(lane);

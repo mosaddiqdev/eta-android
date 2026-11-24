@@ -1,14 +1,15 @@
 import { ChevronRight, Monitor, Moon, Sun, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { formatTime } from "../features/finish/format";
-import { noVillages, readVillages, writeVillages } from "../features/village/villages";
+import { noVillages, readVillages, villageLabel, writeVillages } from "../features/village/villages";
 import { canImportOnOpen } from "../native/clipboardImport";
 import { canNotify } from "../native/notifications";
 import { KIND_IDS } from "../notifications/kinds";
 import { type Clock, type StartOn, type Theme, updateSettings, useSettings } from "../settings/settings";
+import { canWidget } from "../widgets/plugin";
 import { gameDataSummary } from "./about/gameDataAge";
 import { Collapse } from "./Collapse";
-import { canVibrate, confirm } from "./haptics";
+import { canVibrate, confirm, tick } from "./haptics";
 import { Group } from "./SettingsGroup";
 import { type Option, Segmented } from "./SettingsSegmented";
 import styles from "./SettingsSheet.module.css";
@@ -143,6 +144,12 @@ function Body({
         </Group>
       )}
 
+      {canWidget() && (
+        <Group title="Widgets">
+          <MainVillage />
+        </Group>
+      )}
+
       <Group title="Saved data">
         <SavedData />
       </Group>
@@ -159,6 +166,43 @@ const START_NOTE: Record<StartOn, string> = {
   finish: "Always opens Finish time, even with a saved village.",
   village: "Always opens My village. Until you import one, that is the import screen.",
 };
+
+/**
+ * Which village the one-village widgets show. Auto is the one opened last for Workers and every village for Next finish; a
+ * village picked here is the one both show. The Villages widget always shows them all, so it ignores this.
+ */
+function MainVillage() {
+  const settings = useSettings();
+  const [villages] = useState(() => readVillages().villages);
+  const id = useId();
+  // A village that was forgotten since falls back to Auto on screen too, not to a blank select.
+  const value = villages.some((v) => v.tag === settings.mainVillage) ? settings.mainVillage : "";
+  return (
+    <div className={styles.dataRow}>
+      <label className={styles.switchText} htmlFor={id}>
+        <span>Main village</span>
+        <small>Workers and Next finish show this one. Villages shows all.</small>
+      </label>
+      <select
+        id={id}
+        className={styles.select}
+        value={value}
+        disabled={villages.length === 0}
+        onChange={(event) => {
+          tick();
+          updateSettings({ mainVillage: event.target.value });
+        }}
+      >
+        <option value="">Auto</option>
+        {villages.map((v) => (
+          <option key={v.tag} value={v.tag}>
+            {villageLabel(v)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 /** Saved villages live only on this phone. Forgetting them all is one confirmed tap, and the page reloads empty. */
 function SavedData() {
