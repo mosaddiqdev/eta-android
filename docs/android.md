@@ -160,7 +160,9 @@ Each widget is a folder, so none grows into one big file. The native side is `sc
 **Villages** (`villages/`, `src/widgets/villages/`). Every saved village in one place, for players with several accounts. With two or more villages each row is a village: its name (the nickname, or the tag), what finishes there next, and when; the village that finishes first is on top. With one village the rows are its next upgrades. A village with a worker that has nothing to do gets a note in the warning colour ("1 Builder free", or "3 free" across kinds). The height decides how many rows show (up to four); there is one layout. It shares the same helpers in `common/` as Next finish and redraws on the same events. Its words are pictures drawn with the app's fonts (`EtaWidgetText`), because a Pixel launcher showed the phone's font whenever the layout asked for a custom one; they are tinted so they follow light and dark.
 - **Idle** is worked out on the phone at draw time: a lane's workers (as the export counts them, a Goblin not among them) minus its running upgrades. It is only shown for the home lanes, and only where the export says how many workers there are.
 
-Not checked on a device: how each launcher's cells map to the three sizes, the picker preview, and the pictures' memory use on low-end phones.
+**One widget, responsive.** Next finish is a single widget that changes shape with the size it is given: a strip under 90dp tall, a card from 200dp tall at any width (so 2 x 4 and 4 x 4 are the same card, bigger), a square when narrow, and the wide tile in between. The card fits itself to its height (`NextFinishRenderer`): the worker chips come first, the picture grows up to 104dp (Android 12+; fixed before), and any height left over lists what finishes after the next one ("Up next", up to three, soonest first). Only the rows that fit are shown.
+
+Not checked on a device: how each launcher's cells map to the sizes, the picker preview, and the pictures' memory use on low-end phones.
 
 ## The status bar
 

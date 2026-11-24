@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 2 x 4: a tall card. The picture fills the width, then the words, and the kinds of worker in two columns underneath. -->
+<!-- Tall: from 2 x 4 up to as big as it is made. The picture, the words, then what finishes after it, and the kinds of worker in
+     two columns underneath. The renderer sizes the picture and shows only the rows of chips and of "up next" that fit. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/eta_nf_root"
     android:layout_width="match_parent"
@@ -48,6 +49,184 @@
             android:layout_height="wrap_content"
             android:scaleType="fitStart"
             android:importantForAccessibility="no" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/eta_nf_queue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical">
+        <ImageView
+        android:id="@+id/eta_nf_queue_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitStart"
+        android:importantForAccessibility="no" />
+        <LinearLayout
+            android:id="@+id/eta_nf_q1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/eta_nf_q1_art"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:padding="3dp"
+                android:scaleType="fitCenter"
+                android:importantForAccessibility="no"
+                android:background="@drawable/eta_nf_tile"
+                android:src="@mipmap/ic_launcher" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q1_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q1_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:gravity="end"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q1_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q1_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_q2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/eta_nf_q2_art"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:padding="3dp"
+                android:scaleType="fitCenter"
+                android:importantForAccessibility="no"
+                android:background="@drawable/eta_nf_tile"
+                android:src="@mipmap/ic_launcher" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q2_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q2_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:gravity="end"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q2_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q2_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_q3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/eta_nf_q3_art"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:padding="3dp"
+                android:scaleType="fitCenter"
+                android:importantForAccessibility="no"
+                android:background="@drawable/eta_nf_tile"
+                android:src="@mipmap/ic_launcher" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q3_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q3_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitStart"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:gravity="end"
+                android:orientation="vertical">
+                <ImageView
+                android:id="@+id/eta_nf_q3_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+                <ImageView
+                android:id="@+id/eta_nf_q3_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
     <FrameLayout
         android:layout_width="match_parent"
