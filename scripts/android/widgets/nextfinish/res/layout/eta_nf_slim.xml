@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Slim: one column wide (1 x 1 up to 1 x 4 and taller). The picture across the width, the day and time right under it, then what
+     it is, and the kinds of worker stacked at the bottom. The renderer hides what the height can't hold, so nothing is cut off. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/eta_nf_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/eta_nf_bg">
+    <ImageView
+        android:id="@+id/eta_nf_art"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginBottom="6dp"
+        android:padding="6dp"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no"
+        android:background="@drawable/eta_nf_tile"
+        android:src="@mipmap/ic_launcher" />
+    <LinearLayout
+        android:id="@+id/eta_nf_when"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <ImageView
+            android:id="@+id/eta_nf_day"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scaleType="fitStart"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/eta_nf_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scaleType="fitStart"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/eta_nf_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:scaleType="fitStart"
+        android:importantForAccessibility="no" />
+    <ImageView
+        android:id="@+id/eta_nf_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitStart"
+        android:importantForAccessibility="no" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <LinearLayout
+        android:id="@+id/eta_nf_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/eta_nf_chip1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:background="@drawable/eta_nf_chip">
+            <ImageView
+                android:id="@+id/eta_nf_chip1_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_launcher" />
+            <ImageView
+                android:id="@+id/eta_nf_chip1_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_chip2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:background="@drawable/eta_nf_chip">
+            <ImageView
+                android:id="@+id/eta_nf_chip2_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_launcher" />
+            <ImageView
+                android:id="@+id/eta_nf_chip2_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_chip3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:background="@drawable/eta_nf_chip">
+            <ImageView
+                android:id="@+id/eta_nf_chip3_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_launcher" />
+            <ImageView
+                android:id="@+id/eta_nf_chip3_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_chip4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:background="@drawable/eta_nf_chip">
+            <ImageView
+                android:id="@+id/eta_nf_chip4_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_launcher" />
+            <ImageView
+                android:id="@+id/eta_nf_chip4_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/eta_nf_chip5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:background="@drawable/eta_nf_chip">
+            <ImageView
+                android:id="@+id/eta_nf_chip5_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_launcher" />
+            <ImageView
+                android:id="@+id/eta_nf_chip5_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:scaleType="fitEnd"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
