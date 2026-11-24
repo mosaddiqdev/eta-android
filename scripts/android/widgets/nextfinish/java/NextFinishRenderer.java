@@ -14,26 +14,33 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-// Draws the widget: the app's colours, words and lane icons in one of four layouts, chosen by the size the home screen
+// Draws the widget: the app's colours, words and lane icons in one of five layouts, chosen by the size the home screen
 // gives it. Nothing here counts: times are a day and a clock time, so the picture stays true until the next redraw. The words
 // are pictures drawn with the app's fonts (EtaWidgetText), each cut to the room its layout gives it.
 final class NextFinishRenderer {
     private NextFinishRenderer() {}
 
-    private enum Size { SMALL, WIDE, LARGE, TALL }
+    private enum Size { SMALL, WIDE, LARGE, TALL, SLIM }
 
     private static final int[] CHIP = {R.id.eta_nf_chip1, R.id.eta_nf_chip2, R.id.eta_nf_chip3, R.id.eta_nf_chip4, R.id.eta_nf_chip5};
     private static final int[] ICON = {R.id.eta_nf_chip1_icon, R.id.eta_nf_chip2_icon, R.id.eta_nf_chip3_icon, R.id.eta_nf_chip4_icon, R.id.eta_nf_chip5_icon};
     private static final int[] VALUE = {R.id.eta_nf_chip1_value, R.id.eta_nf_chip2_value, R.id.eta_nf_chip3_value, R.id.eta_nf_chip4_value, R.id.eta_nf_chip5_value};
 
-    // The shape the home screen gives it, in dp: a strip when it is short, a card once it is tall (at any width, so a 4 x 4 is the
-    // same card, bigger), a square when it is narrow, and the wide tile in between.
+    // The shape the home screen gives it, in dp: a column when it is one cell wide (at any height), a strip when it is short, a card
+    // once it is tall (at any width, so a 4 x 4 is the same card, bigger), a square when it is narrow, and the wide tile in between.
     private static Size sizeOf(int width, int height) {
+        if (width < SLIM_BELOW) return Size.SLIM;
         if (height < 90) return Size.WIDE;
         if (height >= 200) return Size.TALL;
         if (width < 200) return Size.SMALL;
         return Size.LARGE;
     }
+
+    // One cell is 40dp wide in the home screen's own sums and about 57 to 73 on real launchers; two cells are 110 and up.
+    private static final int SLIM_BELOW = 100;
+    private static final int SLIM_MIN_WIDTH = 56;
+    private static final int SLIM_PAD = 16;
+    private static final int SLIM_CHIP = 30;
 
     // The tall card's heights in dp, besides the picture: padding, the name over two lines, the level and the day and time.
     private static final int TALL_BASE = 142;
@@ -54,9 +61,15 @@ final class NextFinishRenderer {
         return count;
     }
 
-    // Text sizes in sp, in the order SMALL, WIDE, LARGE, TALL.
-    private static float pick(Size size, float small, float wide, float large, float tall) {
-        return size == Size.SMALL ? small : size == Size.WIDE ? wide : size == Size.LARGE ? large : tall;
+    // Text sizes in sp, in the order SMALL, WIDE, LARGE, TALL, SLIM.
+    private static float pick(Size size, float small, float wide, float large, float tall, float slim) {
+        switch (size) {
+            case SMALL: return small;
+            case WIDE: return wide;
+            case LARGE: return large;
+            case TALL: return tall;
+            default: return slim;
+        }
     }
 
     /** The words' own state: the layout in use and how wide it is. */
@@ -75,6 +88,7 @@ final class NextFinishRenderer {
             switch (size) {
                 case LARGE: return px(widthDp - 28 - 64 - 12 - 8) - whenPx;
                 case WIDE: return px(widthDp - 20 - 48 - 10 - 8) - whenPx;
+                case SLIM: return px(widthDp - SLIM_PAD);
                 default: return px(widthDp - 24);
             }
         }
@@ -84,9 +98,11 @@ final class NextFinishRenderer {
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
         int height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
         Size size = sizeOf(width, height);
+        if (size == Size.SLIM) width = Math.max(width, SLIM_MIN_WIDTH);
         int layout = size == Size.LARGE ? R.layout.eta_nf_large
             : size == Size.WIDE ? R.layout.eta_nf_wide
             : size == Size.TALL ? R.layout.eta_nf_tall
+            : size == Size.SLIM ? R.layout.eta_nf_slim
             : R.layout.eta_nf_small;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
         Ink ink = new Ink(context, views, size, width);
@@ -119,14 +135,33 @@ final class NextFinishRenderer {
             queueRows = spare >= QUEUE_HEAD + QUEUE_ROW ? Math.min(3, (spare - QUEUE_HEAD) / QUEUE_ROW) : 0;
             if (Build.VERSION.SDK_INT >= 31) views.setViewLayoutHeight(R.id.eta_nf_art, artDp, TypedValue.COMPLEX_UNIT_DIP);
         }
-        float nameSp = pick(size, 15f, 15f, 18f, 17f);
-        float levelSp = pick(size, 12f, 12f, 13f, 12f);
+        // The column fits itself to its height too, from the top: the picture (if there is room), the day and time, the name on
+        // one line or two, the level, and last the kinds of worker, one to a row, as many as are left room for.
+        boolean levelShown = true;
+        int nameLines = size == Size.TALL ? 2 : 1;
+        if (size == Size.SLIM) {
+            boolean resizable = Build.VERSION.SDK_INT >= 31;
+            boolean artShown = height >= 112;
+            int slimArt = !resizable || height >= 150 ? 54 : 44;
+            boolean nameShown = height >= 66;
+            nameLines = height >= 150 ? 2 : 1;
+            int used = SLIM_PAD + (artShown ? slimArt + 6 : 0) + 28 + (nameShown ? 6 + nameLines * 15 : 0);
+            levelShown = nameShown && height - used >= 14;
+            if (levelShown) used += 14;
+            chipRows = next == null ? 0 : Math.max(0, Math.min(chipCount(next.village, now), (height - used - 6) / SLIM_CHIP));
+            if (resizable && artShown) views.setViewLayoutHeight(R.id.eta_nf_art, slimArt, TypedValue.COMPLEX_UNIT_DIP);
+            EtaWidgetViews.visible(views, artShown, R.id.eta_nf_art);
+            EtaWidgetViews.visible(views, nameShown, R.id.eta_nf_name);
+            EtaWidgetViews.visible(views, levelShown, R.id.eta_nf_level);
+        }
+        float nameSp = pick(size, 15f, 15f, 18f, 17f, 12f);
+        float levelSp = pick(size, 12f, 12f, 13f, 12f, 10f);
         if (next == null) {
             // Nothing to show: say what to do, and keep the whole widget a way into the app.
             boolean none = data.villages.isEmpty();
             int room = ink.room(0);
             ink.text(R.id.eta_nf_name, none ? "Open ClashETA" : "Nothing upgrading", EtaWidgetText.Face.TITLE, nameSp, room,
-                size == Size.TALL ? 2 : 1, 0f, false, light.text, dark.text);
+                nameLines, 0f, false, light.text, dark.text);
             ink.text(R.id.eta_nf_level, none ? "Import your village" : "Every worker is free", EtaWidgetText.Face.BODY, levelSp,
                 room, light.soft, dark.soft);
             views.setImageViewResource(R.id.eta_nf_art, R.mipmap.ic_launcher);
@@ -137,6 +172,7 @@ final class NextFinishRenderer {
                     light.builder, dark.builder);
             }
             if (size == Size.TALL) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips, R.id.eta_nf_queue);
+            if (size == Size.SLIM) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips);
             views.setContentDescription(R.id.eta_nf_root, none ? "ClashETA. Import your village." : "Nothing upgrading.");
         } else {
             EtaWidgetVillages.Upgrade upgrade = next.upgrade;
@@ -148,26 +184,27 @@ final class NextFinishRenderer {
 
             // The day and time first: they are as wide as they need to be, and the words take what is left. The time is the
             // biggest thing in the widget, so it shrinks before it is ever cut off.
-            float daySp = pick(size, 12f, 11f, 12f, 12f);
-            int whenBox = size == Size.SMALL || size == Size.TALL ? ink.px(width - 24)
+            float daySp = pick(size, 12f, 11f, 12f, 12f, 10f);
+            int whenBox = size == Size.SLIM ? ink.px(width - SLIM_PAD) : size == Size.SMALL || size == Size.TALL ? ink.px(width - 24)
                 : size == Size.WIDE ? ink.px((width - 20 - 48 - 10 - 8) * 0.45f) : ink.px((width - 28 - 64 - 12 - 8) * 0.5f);
-            float timeSp = EtaWidgetText.fit(context, time, EtaWidgetText.Face.NUMBER, pick(size, 19f, 17f, 22f, 22f), 12f, whenBox);
+            float timeSp = EtaWidgetText.fit(context, time, EtaWidgetText.Face.NUMBER, pick(size, 19f, 17f, 22f, 22f, 15f), size == Size.SLIM ? 9f : 12f, whenBox);
             Bitmap timePic = ink.text(R.id.eta_nf_time, time, EtaWidgetText.Face.NUMBER, timeSp, 0, light.text, dark.text);
             Bitmap dayPic = size == Size.WIDE
                 ? ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.BODY, daySp, 0, light.soft, dark.soft)
-                : size == Size.SMALL
+                : size == Size.SMALL || size == Size.SLIM
                     ? ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.TITLE, daySp, 0, laneLight, laneDark)
                     : ink.text(R.id.eta_nf_day, day, EtaWidgetText.Face.BODY, daySp, 0, laneLight, laneDark);
             int whenPx = size == Size.LARGE || size == Size.WIDE ? Math.max(timePic.getWidth(), dayPic.getWidth()) : 0;
 
             int room = ink.room(whenPx);
-            ink.text(R.id.eta_nf_name, upgrade.name, EtaWidgetText.Face.TITLE, nameSp, room, size == Size.TALL ? 2 : 1, 0f, false,
+            ink.text(R.id.eta_nf_name, upgrade.name, EtaWidgetText.Face.TITLE, nameSp, room, nameLines, 0f, false,
                 light.text, dark.text);
             // On a short square the level line is what gives way, so the time is never cut off.
-            boolean levelShown = !(size == Size.SMALL && height < 125);
-            EtaWidgetViews.visible(views, levelShown, R.id.eta_nf_level);
-            if (levelShown)
-                ink.text(R.id.eta_nf_level, upgrade.detail, EtaWidgetText.Face.BODY, levelSp, room, light.soft, dark.soft);
+            boolean showLevel = size == Size.SMALL ? height >= 125 : levelShown;
+            EtaWidgetViews.visible(views, showLevel, R.id.eta_nf_level);
+            // The column is narrow: "Level 12 → 13" is "Lv 12 → 13" there.
+            String level = size == Size.SLIM ? upgrade.detail.replace("Level ", "Lv ") : upgrade.detail;
+            if (showLevel) ink.text(R.id.eta_nf_level, level, EtaWidgetText.Face.BODY, levelSp, room, light.soft, dark.soft);
 
             Bitmap art = EtaWidgetArt.load(context, upgrade.image, artSide);
             if (art != null) views.setImageViewBitmap(R.id.eta_nf_art, art);
@@ -178,7 +215,7 @@ final class NextFinishRenderer {
                     : "Next to finish";
                 ink.text(R.id.eta_nf_label, where, EtaWidgetText.Face.TITLE, 11f, room, 1, 0.06f, true, laneLight, laneDark);
             }
-            if (size == Size.LARGE || size == Size.TALL) chips(context, ink, next.village, now, chipRows);
+            if (size == Size.LARGE || size == Size.TALL || size == Size.SLIM) chips(context, ink, next.village, now, chipRows);
             if (size == Size.TALL) queue(context, ink, next, queueRows, data.clock, now);
             views.setContentDescription(R.id.eta_nf_root,
                 "Next to finish: " + upgrade.name + ", " + upgrade.detail + ", " + day + " " + time);
@@ -205,14 +242,16 @@ final class NextFinishRenderer {
             values.add(value);
         }
         boolean tall = ink.size == Size.TALL;
+        boolean slim = ink.size == Size.SLIM;
         EtaWidgetViews.visible(views, !lanes.isEmpty() && maxRows > 0, R.id.eta_nf_chips);
         // How much of a chip is left for its number, in pixels: the chip's share of the width, less its padding, icon and gap.
         int count = Math.max(1, lanes.size());
-        int chipWidth = tall ? (ink.widthDp - 24 - 4) / 2 : (ink.widthDp - 28 - 4 * (count - 1)) / count;
-        int valueRoom = ink.px(chipWidth - 12 - (tall ? 18 : 20) - 5);
+        int chipWidth = slim ? ink.widthDp - SLIM_PAD
+            : tall ? (ink.widthDp - 24 - 4) / 2 : (ink.widthDp - 28 - 4 * (count - 1)) / count;
+        int valueRoom = ink.px(slim ? chipWidth - 10 - 16 - 5 : chipWidth - 12 - (tall ? 18 : 20) - 5);
         for (int i = 0; i < CHIP.length; i++) {
             // In the card only the rows that fit are shown.
-            boolean shown = i < lanes.size() && (!tall || i / 2 < maxRows);
+            boolean shown = i < lanes.size() && (slim ? i < maxRows : !tall || i / 2 < maxRows);
             // In the card the chips sit two to a row: an empty partner keeps its place so a lone chip isn't stretched.
             boolean partnerShown = i % 2 == 0 ? i + 1 < lanes.size() : true;
             views.setViewVisibility(CHIP[i], shown ? View.VISIBLE : tall && partnerShown && i % 2 == 1 ? View.INVISIBLE : View.GONE);
