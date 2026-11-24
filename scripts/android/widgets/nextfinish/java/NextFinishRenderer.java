@@ -5,10 +5,13 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 // Draws the widget: the app's colours, words and lane icons in one of four layouts, chosen by the size the home screen
@@ -23,11 +26,32 @@ final class NextFinishRenderer {
     private static final int[] ICON = {R.id.eta_nf_chip1_icon, R.id.eta_nf_chip2_icon, R.id.eta_nf_chip3_icon, R.id.eta_nf_chip4_icon, R.id.eta_nf_chip5_icon};
     private static final int[] VALUE = {R.id.eta_nf_chip1_value, R.id.eta_nf_chip2_value, R.id.eta_nf_chip3_value, R.id.eta_nf_chip4_value, R.id.eta_nf_chip5_value};
 
-    // The size the home screen gives it, in dp. Wider than a cell and a half and short is a strip; narrow and tall is a card.
+    // The shape the home screen gives it, in dp: a strip when it is short, a card once it is tall (at any width, so a 4 x 4 is the
+    // same card, bigger), a square when it is narrow, and the wide tile in between.
     private static Size sizeOf(int width, int height) {
         if (height < 90) return Size.WIDE;
-        if (width < 200) return height >= 200 ? Size.TALL : Size.SMALL;
+        if (height >= 200) return Size.TALL;
+        if (width < 200) return Size.SMALL;
         return Size.LARGE;
+    }
+
+    // The tall card's heights in dp, besides the picture: padding, the name over two lines, the level and the day and time.
+    private static final int TALL_BASE = 142;
+    private static final int CHIP_ROW = 38;
+    private static final int QUEUE_HEAD = 20;
+    private static final int QUEUE_ROW = 36;
+    private static final int[] Q = {R.id.eta_nf_q1, R.id.eta_nf_q2, R.id.eta_nf_q3};
+    private static final int[] Q_ART = {R.id.eta_nf_q1_art, R.id.eta_nf_q2_art, R.id.eta_nf_q3_art};
+    private static final int[] Q_NAME = {R.id.eta_nf_q1_name, R.id.eta_nf_q2_name, R.id.eta_nf_q3_name};
+    private static final int[] Q_LEVEL = {R.id.eta_nf_q1_level, R.id.eta_nf_q2_level, R.id.eta_nf_q3_level};
+    private static final int[] Q_DAY = {R.id.eta_nf_q1_day, R.id.eta_nf_q2_day, R.id.eta_nf_q3_day};
+    private static final int[] Q_TIME = {R.id.eta_nf_q1_time, R.id.eta_nf_q2_time, R.id.eta_nf_q3_time};
+
+    /** How many of the village's kinds of worker have a chip: the ones with something to say. */
+    private static int chipCount(EtaWidgetVillages.Village village, long now) {
+        int count = 0;
+        for (EtaWidgetVillages.Lane lane : village.lanes) if (village.value(lane, now) != null && count < CHIP.length) count++;
+        return count;
     }
 
     // Text sizes in sp, in the order SMALL, WIDE, LARGE, TALL.
@@ -77,6 +101,24 @@ final class NextFinishRenderer {
 
         EtaWidgetVillages.Pick next = data.next(now);
         int artSide = size == Size.LARGE || size == Size.TALL ? 200 : 144;
+        // The tall card fits itself to its height: the chips come first, the picture takes what it can (up to 104dp), and
+        // whatever is left over lists what finishes after this one.
+        int chipRows = 99;
+        int queueRows = 0;
+        int artDp = 0;
+        if (size == Size.TALL && next != null) {
+            int needRows = (chipCount(next.village, now) + 1) / 2;
+            int want = Math.min(104, Math.max(56, Math.round(width * 0.40f)));
+            chipRows = needRows;
+            artDp = Math.min(want, height - TALL_BASE - chipRows * CHIP_ROW);
+            if (artDp < 48) {
+                artDp = 48;
+                chipRows = Math.max(0, Math.min(needRows, (height - TALL_BASE - artDp) / CHIP_ROW));
+            }
+            int spare = height - TALL_BASE - artDp - chipRows * CHIP_ROW;
+            queueRows = spare >= QUEUE_HEAD + QUEUE_ROW ? Math.min(3, (spare - QUEUE_HEAD) / QUEUE_ROW) : 0;
+            if (Build.VERSION.SDK_INT >= 31) views.setViewLayoutHeight(R.id.eta_nf_art, artDp, TypedValue.COMPLEX_UNIT_DIP);
+        }
         float nameSp = pick(size, 15f, 15f, 18f, 17f);
         float levelSp = pick(size, 12f, 12f, 13f, 12f);
         if (next == null) {
@@ -94,7 +136,7 @@ final class NextFinishRenderer {
                 ink.text(R.id.eta_nf_label, "Next to finish", EtaWidgetText.Face.TITLE, 11f, room, 1, 0.06f, true,
                     light.builder, dark.builder);
             }
-            if (size == Size.TALL) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips);
+            if (size == Size.TALL) EtaWidgetViews.visible(views, false, R.id.eta_nf_chips, R.id.eta_nf_queue);
             views.setContentDescription(R.id.eta_nf_root, none ? "ClashETA. Import your village." : "Nothing upgrading.");
         } else {
             EtaWidgetVillages.Upgrade upgrade = next.upgrade;
@@ -136,7 +178,8 @@ final class NextFinishRenderer {
                     : "Next to finish";
                 ink.text(R.id.eta_nf_label, where, EtaWidgetText.Face.TITLE, 11f, room, 1, 0.06f, true, laneLight, laneDark);
             }
-            if (size == Size.LARGE || size == Size.TALL) chips(context, ink, next.village, now);
+            if (size == Size.LARGE || size == Size.TALL) chips(context, ink, next.village, now, chipRows);
+            if (size == Size.TALL) queue(context, ink, next, queueRows, data.clock, now);
             views.setContentDescription(R.id.eta_nf_root,
                 "Next to finish: " + upgrade.name + ", " + upgrade.detail + ", " + day + " " + time);
         }
@@ -151,7 +194,7 @@ final class NextFinishRenderer {
 
     // The village page's summary tiles: each kind of worker with its own icon and how many are busy. Only the kinds this
     // village has, or has something running in, so a village without a Builder Base shows three.
-    private static void chips(Context context, Ink ink, EtaWidgetVillages.Village village, long now) {
+    private static void chips(Context context, Ink ink, EtaWidgetVillages.Village village, long now, int maxRows) {
         RemoteViews views = ink.views;
         List<EtaWidgetVillages.Lane> lanes = new ArrayList<>();
         List<String> values = new ArrayList<>();
@@ -162,13 +205,14 @@ final class NextFinishRenderer {
             values.add(value);
         }
         boolean tall = ink.size == Size.TALL;
-        EtaWidgetViews.visible(views, !lanes.isEmpty(), R.id.eta_nf_chips);
+        EtaWidgetViews.visible(views, !lanes.isEmpty() && maxRows > 0, R.id.eta_nf_chips);
         // How much of a chip is left for its number, in pixels: the chip's share of the width, less its padding, icon and gap.
         int count = Math.max(1, lanes.size());
         int chipWidth = tall ? (ink.widthDp - 24 - 4) / 2 : (ink.widthDp - 28 - 4 * (count - 1)) / count;
         int valueRoom = ink.px(chipWidth - 12 - (tall ? 18 : 20) - 5);
         for (int i = 0; i < CHIP.length; i++) {
-            boolean shown = i < lanes.size();
+            // In the card only the rows that fit are shown.
+            boolean shown = i < lanes.size() && (!tall || i / 2 < maxRows);
             // In the card the chips sit two to a row: an empty partner keeps its place so a lone chip isn't stretched.
             boolean partnerShown = i % 2 == 0 ? i + 1 < lanes.size() : true;
             views.setViewVisibility(CHIP[i], shown ? View.VISIBLE : tall && partnerShown && i % 2 == 1 ? View.INVISIBLE : View.GONE);
@@ -183,9 +227,38 @@ final class NextFinishRenderer {
             views.setContentDescription(CHIP[i], lanes.get(i).name + " " + values.get(i));
         }
         if (tall) {
-            EtaWidgetViews.visible(views, lanes.size() > 0, R.id.eta_nf_row1);
-            EtaWidgetViews.visible(views, lanes.size() > 2, R.id.eta_nf_row2);
-            EtaWidgetViews.visible(views, lanes.size() > 4, R.id.eta_nf_row3);
+            EtaWidgetViews.visible(views, lanes.size() > 0 && maxRows > 0, R.id.eta_nf_row1);
+            EtaWidgetViews.visible(views, lanes.size() > 2 && maxRows > 1, R.id.eta_nf_row2);
+            EtaWidgetViews.visible(views, lanes.size() > 4 && maxRows > 2, R.id.eta_nf_row3);
+        }
+    }
+
+    // The card's "up next": the village's following finishes, soonest first, as many as the height leaves room for.
+    private static void queue(Context context, Ink ink, EtaWidgetVillages.Pick next, int rows, String clock, long now) {
+        RemoteViews views = ink.views;
+        List<EtaWidgetVillages.Upgrade> later = new ArrayList<>();
+        for (EtaWidgetVillages.Upgrade u : next.village.upgrades) if (u.at > now && u != next.upgrade) later.add(u);
+        later.sort(Comparator.comparingLong(u -> u.at));
+        int shown = Math.min(rows, later.size());
+        EtaWidgetViews.visible(views, shown > 0, R.id.eta_nf_queue);
+        if (shown == 0) return;
+        ink.text(R.id.eta_nf_queue_label, "Up next", EtaWidgetText.Face.TITLE, 10f, 0, 1, 0.06f, true, ink.light.soft, ink.dark.soft);
+        for (int i = 0; i < Q.length; i++) {
+            views.setViewVisibility(Q[i], i < shown ? View.VISIBLE : View.GONE);
+            if (i >= shown) continue;
+            EtaWidgetVillages.Upgrade u = later.get(i);
+            views.setInt(Q_ART[i], "setBackgroundResource",
+                ink.surface(R.drawable.eta_nf_tile, R.drawable.eta_nf_tile_dark, R.drawable.eta_nf_tile_light));
+            Bitmap art = EtaWidgetArt.load(context, u.image, 90);
+            if (art != null) views.setImageViewBitmap(Q_ART[i], art);
+            else views.setImageViewResource(Q_ART[i], R.mipmap.ic_launcher);
+            String day = EtaWidgetWhen.day(u.at, now);
+            String time = EtaWidgetWhen.time(context, u.at, clock);
+            Bitmap t = ink.text(Q_TIME[i], time, EtaWidgetText.Face.NUMBER, 12f, 0, ink.light.text, ink.dark.text);
+            Bitmap d = ink.text(Q_DAY[i], day, EtaWidgetText.Face.BODY, 10f, 0, ink.light.soft, ink.dark.soft);
+            int room = Math.max(0, ink.px(ink.widthDp - 24 - 30 - 8 - 6) - Math.max(t.getWidth(), d.getWidth()));
+            ink.text(Q_NAME[i], u.name, EtaWidgetText.Face.TITLE, 12f, room, ink.light.text, ink.dark.text);
+            ink.text(Q_LEVEL[i], u.detail, EtaWidgetText.Face.BODY, 10f, room, ink.light.soft, ink.dark.soft);
         }
     }
 }
